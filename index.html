@@ -32,14 +32,23 @@
     .btn-press:active { transform: scale(0.92); }
     
     .bar-grow { transition: height 1s cubic-bezier(0.16, 1, 0.3, 1); }
+
+    /* トースト用の追加スタイル */
+    .top-safe { top: env(safe-area-inset-top, 1rem); }
   </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 pb-32 relative overflow-x-hidden min-h-screen">
 
-  <!-- 背景グラデーション -->
+  <!-- トースト通知（メッセージボックス） -->
+  <div id="toast" class="fixed top-safe mt-4 left-4 right-4 z-[100] transform -translate-y-[150%] opacity-0 transition-all duration-300 pointer-events-none flex justify-center">
+    <div class="bg-gray-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
+      <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
+      <span id="toast-message" class="text-sm font-bold tracking-wide"></span>
+    </div>
+  </div>
+
   <div class="fixed top-0 left-0 right-0 h-80 bg-gradient-to-b from-gray-900 to-gray-800 rounded-b-[40px] shadow-lg z-0 pointer-events-none"></div>
 
-  <!-- ヘッダー -->
   <header class="px-6 pt-16 pt-safe pb-4 flex justify-between items-center relative z-10 text-white">
     <div>
       <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
@@ -110,9 +119,7 @@
           <button onclick="switchTab('calendar')" class="text-xs font-bold text-blue-600 flex items-center btn-press">すべて見る <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
         </div>
         <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[28px] overflow-hidden">
-          <div id="transaction-list-recent" class="divide-y divide-gray-100">
-            <!-- JSで動的にリストを生成 -->
-          </div>
+          <div id="transaction-list-recent" class="divide-y divide-gray-100"></div>
         </div>
       </div>
     </div>
@@ -131,90 +138,25 @@
         <div class="h-40 flex items-end justify-between gap-2 relative">
           <div class="absolute left-0 right-0 bottom-16 border-t border-dashed border-gray-300 z-0"></div>
           
-          <div class="w-full flex flex-col justify-end items-center z-10 group">
-            <div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 40px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-400 mt-2">月</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 30px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-400 mt-2">火</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 50px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-400 mt-2">水</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 20px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-400 mt-2">木</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 25px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-400 mt-2">金</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-emerald-500 rounded-b-md bar-grow transform translate-y-[100%] shadow-lg shadow-emerald-500/30" style="height: 45px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-extrabold text-gray-900 mt-2 bg-gray-200 px-2 py-0.5 rounded-full">土</span>
-          </div>
-          <div class="w-full flex flex-col justify-end items-center z-10">
-            <div class="w-full bg-gray-200 rounded-t-md" style="height: 4px; margin-bottom: 64px;"></div>
-            <span class="text-[10px] font-bold text-gray-300 mt-2">日</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
-        <h2 class="text-lg font-extrabold tracking-tight text-gray-900 mb-4">栄養素ポートフォリオ</h2>
-        <div class="space-y-4">
-          <div>
-            <div class="flex justify-between text-xs font-bold mb-1">
-              <span class="text-orange-500">Protein (タンパク質)</span>
-              <span class="text-gray-600">85g <span class="text-gray-400">/ 120g</span></span>
-            </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-orange-400 to-amber-400" style="width: 70%"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs font-bold mb-1">
-              <span class="text-rose-500">Fat (脂質)</span>
-              <span class="text-gray-600">45g <span class="text-gray-400">/ 60g</span></span>
-            </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-rose-400 to-red-400" style="width: 75%"></div>
-            </div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs font-bold mb-1">
-              <span class="text-blue-500">Carbs (炭水化物)</span>
-              <span class="text-gray-600">210g <span class="text-gray-400">/ 250g</span></span>
-            </div>
-            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
-              <div class="h-full bg-gradient-to-r from-cyan-400 to-blue-500" style="width: 84%"></div>
-            </div>
-          </div>
+          <!-- 月〜日グラフモック -->
+          <div class="w-full flex flex-col justify-end items-center z-10 group"><div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 40px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">月</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 30px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">火</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 50px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">水</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 20px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">木</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 25px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">金</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-500 rounded-b-md bar-grow transform translate-y-[100%] shadow-lg shadow-emerald-500/30" style="height: 45px; margin-bottom: 64px;"></div><span class="text-[10px] font-extrabold text-gray-900 mt-2 bg-gray-200 px-2 py-0.5 rounded-full">土</span></div>
+          <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-gray-200 rounded-t-md" style="height: 4px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-300 mt-2">日</span></div>
         </div>
       </div>
     </div>
 
     <!-- ビュー3：明細 (Calendar) -->
     <div id="view-calendar" class="space-y-5 hidden animate-tab">
-      <div class="flex gap-2">
-        <div class="flex-1 bg-white/70 backdrop-blur-md rounded-2xl px-4 py-3 flex items-center gap-2 border border-white shadow-sm">
-          <i data-lucide="search" class="text-gray-400 w-5 h-5"></i>
-          <input type="text" placeholder="取引を検索..." class="bg-transparent border-none outline-none text-sm font-bold w-full placeholder-gray-400">
-        </div>
-        <button class="bg-white/70 backdrop-blur-md rounded-2xl w-12 flex items-center justify-center border border-white shadow-sm btn-press">
-          <i data-lucide="filter" class="text-gray-600 w-5 h-5"></i>
-        </button>
-      </div>
-
       <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden pb-4">
         <div class="bg-gray-100/50 px-5 py-2 border-b border-white">
           <span class="text-[11px] font-extrabold text-gray-500 tracking-widest">すべての記録</span>
         </div>
-        <div id="transaction-list-full" class="divide-y divide-gray-100">
-          <!-- JSで動的にリストを生成 -->
-        </div>
+        <div id="transaction-list-full" class="divide-y divide-gray-100"></div>
       </div>
     </div>
 
@@ -231,6 +173,23 @@
       </div>
 
       <div class="space-y-4">
+        <!-- AI API設定（重要） -->
+        <div>
+          <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">AI エンジン設定</p>
+          <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden p-5">
+            <div class="mb-4">
+              <label class="font-extrabold text-sm text-gray-900 flex items-center gap-2 mb-2">
+                <i data-lucide="key" class="w-4 h-4 text-blue-500"></i> Gemini API Key
+              </label>
+              <input type="password" id="api-key-input" class="w-full bg-white rounded-xl px-4 py-3 text-sm font-medium outline-none border border-gray-200 focus:border-blue-500 transition-colors shadow-inner" placeholder="AIzaSy...">
+              <p class="text-[10px] font-bold text-gray-400 mt-2">※キーはiPhone内のローカルストレージにのみ保存され、外部サーバーには送信されません。</p>
+            </div>
+            <button onclick="saveApiKey()" class="w-full bg-blue-50 text-blue-600 font-extrabold text-sm py-3 rounded-xl active:scale-95 transition-transform">
+              端末に保存する
+            </button>
+          </div>
+        </div>
+
         <div>
           <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">システム連携</p>
           <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden divide-y divide-gray-100">
@@ -297,8 +256,8 @@
            </div>
         </div>
         <div class="text-center">
-          <p class="text-xl font-extrabold text-gray-900 tracking-tight">データをクラウドに送信中</p>
-          <p class="text-sm font-bold text-gray-500 mt-2">スプレッドシートと同期しています...</p>
+          <p id="analyzing-title" class="text-xl font-extrabold text-gray-900 tracking-tight">AIが画像を解析中</p>
+          <p id="analyzing-desc" class="text-sm font-bold text-gray-500 mt-2">料理の写真からカロリー収入を推測します...</p>
         </div>
       </div>
 
@@ -312,11 +271,19 @@
             <p class="text-[10px] font-bold text-orange-600/80">食べた分だけ口座残高（カロリー）が増加します</p>
           </div>
         </div>
-        <div class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner">
-          <i data-lucide="camera" class="w-12 h-12 mb-3 opacity-50" stroke-width="1.5"></i>
-          <p class="font-bold text-sm tracking-wide">料理 / レシートを撮影</p>
-        </div>
-        <button onclick="recordToCloud()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
+        
+        <!-- カメラ起動エリア (<label>に変更して直接起動させる) -->
+        <label for="image-input" id="camera-area" class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner cursor-pointer overflow-hidden relative btn-press block">
+          <div id="camera-placeholder" class="flex flex-col items-center pointer-events-none">
+            <i data-lucide="camera" class="w-12 h-12 mb-3 opacity-50" stroke-width="1.5"></i>
+            <p class="font-bold text-sm tracking-wide">タップして料理を撮影</p>
+          </div>
+          <!-- 撮影した画像のプレビュー -->
+          <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none" />
+          <input type="file" id="image-input" accept="image/*" class="hidden">
+        </label>
+        
+        <button onclick="analyzeAndRecord()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
           <i data-lucide="sparkles" class="w-5 h-5"></i> AI記帳してクラウド保存
         </button>
       </div>
@@ -325,53 +292,176 @@
 
   <script>
     // ==========================================
-    // ★ GASウェブアプリURLの設定 ★
+    // システム設定
     // ==========================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKcBABJsv4YyAw1QbWnM6AXrr3w6VTmaf6qMJQxn2KDsW06znPcAYJCqDJAXHaIDsIgA/exec";
-
+    
+    // APIキーは端末(localStorage)から取得
+    let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
+    let selectedImageBase64 = null;
     let transactions = [];
 
-    // アプリ起動時のデータ取得（GET）
-    async function fetchTransactions() {
-      try {
-        const response = await fetch(GAS_WEB_APP_URL);
-        const data = await response.json();
-        
-        // 基礎代謝をデフォルト支出として追加
-        const basalMetabolism = { id: 0, type: 'expense', category: '基礎代謝', name: '息してるだけで消費', amount: 1500, time: '00:00', icon: '🫀' };
-        
-        transactions = [basalMetabolism, ...data];
-        updateUI();
-      } catch (error) {
-        console.error("データの取得に失敗しました:", error);
-        alert("データの取得に失敗しました。URLやCORSの設定を確認してください。");
+    // --- トースト通知機能 ---
+    function showToast(message, isError = false) {
+      const toast = document.getElementById('toast');
+      const msgEl = document.getElementById('toast-message');
+      const icon = toast.querySelector('i');
+      
+      msgEl.innerText = message;
+      if (isError) {
+        icon.setAttribute('data-lucide', 'alert-circle');
+        icon.classList.replace('text-blue-400', 'text-rose-400');
+        icon.classList.replace('text-emerald-400', 'text-rose-400');
+      } else {
+        icon.setAttribute('data-lucide', 'check-circle-2');
+        icon.classList.replace('text-rose-400', 'text-emerald-400');
+        icon.classList.replace('text-blue-400', 'text-emerald-400');
+      }
+      lucide.createIcons();
+
+      toast.classList.remove('-translate-y-[150%]', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('-translate-y-[150%]', 'opacity-0');
+      }, 3000);
+    }
+
+    // --- 初期化 ---
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+      document.getElementById('api-key-input').value = geminiApiKey; // 設定タブに入力しておく
+      fetchTransactions(); // GASから既存データを取得
+    });
+
+    // --- APIキーの保存 ---
+    function saveApiKey() {
+      const val = document.getElementById('api-key-input').value.trim();
+      if(val) {
+        localStorage.setItem('gemini_api_key', val);
+        geminiApiKey = val;
+        showToast('APIキーを端末に保存しました。');
+      } else {
+        showToast('APIキーを入力してください。', true);
       }
     }
 
-    // クラウド（スプレッドシート）へのデータ送信（POST）
-    async function recordToCloud() {
+    // --- カメラ（画像選択）機能 ---
+    document.getElementById('image-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        // 画像データをBase64として保持（プレフィックス 'data:image/jpeg;base64,' を除去）
+        selectedImageBase64 = event.target.result.split(',')[1];
+        
+        // プレビュー表示
+        document.getElementById('preview-img').src = event.target.result;
+        document.getElementById('preview-img').classList.remove('hidden');
+        document.getElementById('camera-placeholder').classList.add('hidden');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // --- Gemini API (PWA側から直接呼び出し) ---
+    async function callGeminiAPI(base64Image) {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
+      const prompt = "この食事の写真を解析して、一般的なカロリー（kcal）を推測してください。結果はJSONで返してください。完璧でなくて構いません。少し厳しめ（高め）にカロリーを見積もってください。";
+      
+      const payload = {
+        contents: [{
+          parts: [
+            { text: prompt },
+            { inlineData: { mimeType: "image/jpeg", data: base64Image } }
+          ]
+        }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "OBJECT",
+            properties: {
+              category: { type: "STRING", description: "朝食、昼食、夕食、間食、夜食など" },
+              name: { type: "STRING", description: "料理の簡潔な名前" },
+              amount: { type: "INTEGER", description: "推測される総カロリー数(kcal)" },
+              icon: { type: "STRING", description: "料理を表す絵文字1文字" }
+            },
+            required: ["category", "name", "amount", "icon"]
+          }
+        }
+      };
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error?.message || "APIエラー");
+      }
+      
+      const data = await res.json();
+      const text = data.candidates[0].content.parts[0].text;
+      return JSON.parse(text);
+    }
+
+    // --- フロントエンドでの解析 ＆ GASへの保存 ---
+    async function analyzeAndRecord() {
+      if (!geminiApiKey) {
+        showToast("設定タブからGemini APIキーを設定してください。", true);
+        switchTab('user');
+        closeModal();
+        return;
+      }
+      if (!selectedImageBase64) {
+        showToast("料理の写真を撮影または選択してください。", true);
+        return;
+      }
+      
       if(navigator.vibrate) navigator.vibrate([10, 50, 10]);
       
       const inputUI = document.getElementById('input-ui');
       const analyzingUI = document.getElementById('analyzing-ui');
+      const analyzingTitle = document.getElementById('analyzing-title');
+      const analyzingDesc = document.getElementById('analyzing-desc');
       
       inputUI.classList.add('hidden');
       analyzingUI.classList.remove('hidden');
-
+      
       try {
-        // GAS側で action: 'analyze_and_add' を受けて処理させる
-        const payload = {
-          action: 'analyze_and_add',
-          payload: {}
+        // 1. Gemini APIで画像を解析
+        analyzingTitle.innerText = "Gemini AI 解析中";
+        analyzingDesc.innerText = "料理の写真からカロリーを推測しています...";
+        
+        const aiResult = await callGeminiAPI(selectedImageBase64);
+        
+        // 解析結果を整形
+        const newIncome = {
+          type: 'income',
+          category: aiResult.category || "食事",
+          name: aiResult.name || "不明な料理",
+          amount: aiResult.amount || 0,
+          time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+          icon: aiResult.icon || "🍽️"
+        };
+
+        // 2. GAS（スプレッドシート）へ保存
+        analyzingTitle.innerText = "クラウドへ同期中";
+        analyzingDesc.innerText = "AIの解析結果をスプレッドシートに保存しています...";
+        
+        const gasPayload = {
+          action: 'add', // AI解析は完了しているので、単純な追加アクション
+          payload: newIncome
         };
 
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
-          redirect: 'follow', // GASのリダイレクトに対応
-          headers: {
-            'Content-Type': 'text/plain;charset=utf-8',
-          },
-          body: JSON.stringify(payload)
+          redirect: 'follow', 
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(gasPayload)
         });
 
         const result = await response.json();
@@ -379,22 +469,36 @@
         if (result.status === 'success') {
           transactions.push(result.data);
           updateUI();
+          showToast('クラウドへの保存が完了しました！');
+        } else {
+          throw new Error("GASへの保存に失敗しました");
         }
       } catch (error) {
-        console.error("データの送信に失敗しました:", error);
-        alert("通信エラーが発生しました。");
+        console.error("エラー:", error);
+        showToast("処理に失敗しました: " + error.message, true);
       } finally {
         closeModal();
       }
     }
 
-    // --- UI制御ロジック ---
-    const tabTitles = {
-      'wallet': '体内エネルギー収支',
-      'activity': 'データ分析',
-      'calendar': '取引明細',
-      'user': 'システム設定'
-    };
+    // ==========================================
+    // UIとその他のロジック
+    // ==========================================
+
+    async function fetchTransactions() {
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const data = await response.json();
+        const basalMetabolism = { id: 0, type: 'expense', category: '基礎代謝', name: '息してるだけで消費', amount: 1500, time: '00:00', icon: '🫀' };
+        transactions = [basalMetabolism, ...data];
+        updateUI();
+      } catch (error) {
+        console.error("データの取得に失敗:", error);
+        showToast("データの取得に失敗しました。URLを確認してください。", true);
+      }
+    }
+
+    const tabTitles = { 'wallet': '体内エネルギー収支', 'activity': 'データ分析', 'calendar': '取引明細', 'user': 'システム設定' };
 
     function switchTab(tabId) {
       if(navigator.vibrate) navigator.vibrate(5);
@@ -403,19 +507,16 @@
         const btn = document.getElementById(`nav-${id}`);
         btn.classList.remove('text-gray-900');
         btn.classList.add('text-gray-400');
-        const icon = document.getElementById(`icon-${id}`);
-        if(icon) icon.setAttribute('stroke-width', '2');
       });
       const targetView = document.getElementById(`view-${tabId}`);
       targetView.classList.remove('hidden');
       targetView.classList.remove('animate-tab');
       void targetView.offsetWidth; 
       targetView.classList.add('animate-tab');
+      
       const activeBtn = document.getElementById(`nav-${tabId}`);
       activeBtn.classList.remove('text-gray-400');
       activeBtn.classList.add('text-gray-900');
-      const activeIcon = document.getElementById(`icon-${tabId}`);
-      if(activeIcon) activeIcon.setAttribute('stroke-width', '2.5');
       document.getElementById('header-title').innerText = tabTitles[tabId];
     }
 
@@ -448,8 +549,7 @@
       document.getElementById('advice-text').innerText = advice.text;
 
       const sortedTxs = [...transactions].sort((a, b) => b.time.localeCompare(a.time));
-      const recentTxs = sortedTxs.slice(0, 3);
-      document.getElementById('transaction-list-recent').innerHTML = generateTxHtml(recentTxs);
+      document.getElementById('transaction-list-recent').innerHTML = generateTxHtml(sortedTxs.slice(0, 3));
       document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedTxs);
       
       lucide.createIcons();
@@ -457,7 +557,6 @@
 
     function generateTxHtml(txArray) {
       if(txArray.length === 0) return `<div class="p-4 text-center text-sm font-bold text-gray-400">取引データがありません</div>`;
-      
       return txArray.map(tx => `
         <div class="p-4 flex items-center gap-4 active:bg-gray-100 transition-colors cursor-pointer">
           <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border ${tx.type === 'income' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}">
@@ -484,7 +583,7 @@
       if (isSurplus) {
         return { name: "システムアラート", role: "黒字（カロリー超過）", text: "体内エネルギーが黒字化しています。このままでは余剰カロリーが脂肪として蓄積されるリスクがあります。アクティビティを増やして赤字化を目指してください。", gradient: "from-rose-500 to-red-500", icon: "🚨" };
       } else if (balance > -300) {
-        return { name: "分析エンジン", role: "適正水準（微赤字）", text: "良好な赤字経営です。ただし、夜間の突発的なカロリー収入（夜食）による黒字転落には警戒が必要です。現在の水準を維持してください。", gradient: "from-blue-500 to-indigo-500", icon: "📊" };
+        return { name: "分析エンジン", role: "適正水準（微赤字）", text: "良好な赤字経営です。夜間の突発的なカロリー収入（夜食）による黒字転落には警戒が必要です。現在の水準を維持してください。", gradient: "from-blue-500 to-indigo-500", icon: "📊" };
       } else {
         return { name: "分析エンジン", role: "目標達成（大赤字）", text: "理想的なエネルギー収支です。体内エネルギーが枯渇し、備蓄（脂肪）の燃焼サイクルに入っています。素晴らしい運用実績です。", gradient: "from-emerald-400 to-teal-500", icon: "📉" };
       }
@@ -493,11 +592,17 @@
     const modal = document.getElementById('modal');
     const overlay = document.getElementById('modal-overlay');
     const content = document.getElementById('modal-content');
-    const inputUI = document.getElementById('input-ui');
-    const analyzingUI = document.getElementById('analyzing-ui');
 
     function openModal() {
       if(navigator.vibrate) navigator.vibrate(10);
+      
+      // 画像プレビューをリセット
+      document.getElementById('preview-img').src = "";
+      document.getElementById('preview-img').classList.add('hidden');
+      document.getElementById('camera-placeholder').classList.remove('hidden');
+      selectedImageBase64 = null;
+      document.getElementById('image-input').value = ""; // file inputリセット
+
       modal.classList.remove('hidden');
       setTimeout(() => {
         overlay.classList.remove('opacity-0');
@@ -514,17 +619,10 @@
       content.classList.add('translate-y-full');
       setTimeout(() => {
         modal.classList.add('hidden');
-        inputUI.classList.remove('hidden');
-        analyzingUI.classList.add('hidden');
+        document.getElementById('input-ui').classList.remove('hidden');
+        document.getElementById('analyzing-ui').classList.add('hidden');
       }, 400); 
     }
-
-    // --- 初期化（通信開始） ---
-    document.addEventListener("DOMContentLoaded", () => {
-      lucide.createIcons();
-      fetchTransactions(); // GASからデータを取得
-    });
-
   </script>
 </body>
 </html>

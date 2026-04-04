@@ -2,19 +2,15 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <!-- PWA用のViewport設定（フルスクリーン対応） -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Body Bank</title>
 
-  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    /* iOS特有の設定とアニメーション */
     body {
       -webkit-tap-highlight-color: transparent;
       user-select: none;
@@ -23,25 +19,19 @@
     .pb-safe { padding-bottom: env(safe-area-inset-bottom, 1.5rem); }
     .pt-safe { padding-top: env(safe-area-inset-top, 1rem); }
     
-    @keyframes slideUp { 
-      from { transform: translateY(100%); opacity: 0; } 
-      to { transform: translateY(0); opacity: 1; } 
-    }
+    @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes pulse-slow {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
+    @keyframes slideInRight { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
     
     .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     .animate-fade-in { animation: fadeIn 0.2s ease-out forwards; }
+    .animate-tab { animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     
-    /* スクロールバー非表示 */
     ::-webkit-scrollbar { display: none; }
-    
-    /* 疑似Haptic用のボタンスケールエフェクト */
     .btn-press { transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1); }
     .btn-press:active { transform: scale(0.92); }
+    
+    .bar-grow { transition: height 1s cubic-bezier(0.16, 1, 0.3, 1); }
   </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 pb-32 relative overflow-x-hidden min-h-screen">
@@ -55,78 +45,208 @@
       <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
         <i data-lucide="scale" class="w-3.5 h-3.5"></i> Body Bank
       </p>
-      <h1 class="text-3xl font-extrabold tracking-tight">体内エネルギー収支</h1>
+      <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
     </div>
     <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
       <i data-lucide="user" class="text-white w-5 h-5"></i>
     </div>
   </header>
 
-  <main class="px-4 mt-2 space-y-5 relative z-10">
+  <main class="px-4 mt-2 relative z-10">
     
-    <!-- メイン残高（体内カロリー残高）カード -->
-    <div id="balance-card" class="p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20">
-      <div class="absolute -right-10 -top-10 opacity-10 mix-blend-overlay">
-        <i data-lucide="trending-down" class="w-40 h-40"></i>
+    <!-- ビュー1：口座 (Wallet) -->
+    <div id="view-wallet" class="space-y-5 animate-tab">
+      <div id="balance-card" class="p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20">
+        <div class="absolute -right-10 -top-10 opacity-10 mix-blend-overlay">
+          <i data-lucide="trending-down" class="w-40 h-40"></i>
+        </div>
+        <div class="flex justify-between items-start relative z-10">
+          <div>
+            <p class="text-sm font-medium text-white/80 mb-1 flex items-center gap-2">
+              本日の純収支（めざせ赤字！）
+              <span id="alert-ping" class="hidden flex h-2 w-2 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+              </span>
+            </p>
+            <div class="flex items-baseline gap-1 mt-2">
+              <span id="balance-amount" class="text-6xl font-extrabold tracking-tighter tabular-nums transition-all duration-500">-</span>
+              <span class="text-lg font-bold text-white/80">kcal</span>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 grid grid-cols-2 gap-4 relative z-10">
+          <div class="bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-sm shadow-inner">
+            <div class="flex items-center gap-1.5 text-xs text-white/90 mb-1">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-orange-300"></i>
+              <span class="font-bold">収入 (食事)</span>
+            </div>
+            <div id="income-amount" class="text-2xl font-extrabold tracking-tight">-</div>
+          </div>
+          <div class="bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-sm shadow-inner">
+            <div class="flex items-center gap-1.5 text-xs text-white/90 mb-1">
+              <i data-lucide="trending-down" class="w-3.5 h-3.5 text-blue-300"></i>
+              <span class="font-bold">支出 (代謝+運動)</span>
+            </div>
+            <div id="expense-amount" class="text-2xl font-extrabold tracking-tight text-blue-100">-</div>
+          </div>
+        </div>
       </div>
-      
-      <div class="flex justify-between items-start relative z-10">
+
+      <div id="advice-card" class="rounded-[28px] p-5 bg-gradient-to-r text-white shadow-lg flex gap-4 items-start transform transition-all duration-500">
+        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 text-3xl shadow-inner border border-white/30" id="advice-icon">⌛</div>
         <div>
-          <p class="text-sm font-medium text-white/80 mb-1 flex items-center gap-2">
-            本日の純収支（めざせ赤字！）
-            <span id="alert-ping" class="hidden flex h-2 w-2 relative">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-          </p>
-          <div class="flex items-baseline gap-1 mt-2">
-            <span id="balance-amount" class="text-6xl font-extrabold tracking-tighter tabular-nums transition-all duration-500">-180</span>
-            <span class="text-lg font-bold text-white/80">kcal</span>
+          <div class="flex items-baseline gap-2 mb-1">
+            <span id="advice-name" class="font-extrabold text-base tracking-tight">分析エンジン</span>
+            <span id="advice-role" class="text-[10px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full">データ同期中</span>
           </div>
+          <p id="advice-text" class="text-sm font-medium leading-relaxed text-white/95">クラウドからデータを取得しています...</p>
         </div>
       </div>
 
-      <!-- 収支サマリー -->
-      <div class="mt-8 grid grid-cols-2 gap-4 relative z-10">
-        <div class="bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-sm shadow-inner">
-          <div class="flex items-center gap-1.5 text-xs text-white/90 mb-1">
-            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-orange-300"></i>
-            <span class="font-bold">収入 (食事)</span>
-          </div>
-          <div id="income-amount" class="text-2xl font-extrabold tracking-tight">+1800</div>
+      <div class="pt-2">
+        <div class="flex justify-between items-end px-2 mb-4">
+          <h2 class="text-2xl font-extrabold tracking-tight text-gray-900">直近の取引</h2>
+          <button onclick="switchTab('calendar')" class="text-xs font-bold text-blue-600 flex items-center btn-press">すべて見る <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
         </div>
-        <div class="bg-white/10 p-3 rounded-2xl border border-white/20 backdrop-blur-sm shadow-inner">
-          <div class="flex items-center gap-1.5 text-xs text-white/90 mb-1">
-            <i data-lucide="trending-down" class="w-3.5 h-3.5 text-blue-300"></i>
-            <span class="font-bold">支出 (代謝+運動)</span>
+        <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[28px] overflow-hidden">
+          <div id="transaction-list-recent" class="divide-y divide-gray-100">
+            <!-- JSで動的にリストを生成 -->
           </div>
-          <div id="expense-amount" class="text-2xl font-extrabold tracking-tight text-blue-100">-1980</div>
         </div>
       </div>
     </div>
 
-    <!-- 猫たちのアドバイス -->
-    <div id="advice-card" class="rounded-[28px] p-5 bg-gradient-to-r text-white shadow-lg flex gap-4 items-start transform transition-all duration-500">
-      <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 text-3xl shadow-inner border border-white/30" id="advice-icon">📉</div>
-      <div>
-        <div class="flex items-baseline gap-2 mb-1">
-          <span id="advice-name" class="font-extrabold text-base tracking-tight">ほたて＆うに</span>
-          <span id="advice-role" class="text-[10px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full">破産（ダイエット成功）</span>
+    <!-- ビュー2：分析 (Activity) -->
+    <div id="view-activity" class="space-y-5 hidden animate-tab">
+      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-lg font-extrabold tracking-tight text-gray-900">週間・純収支トレンド</h2>
+          <select class="bg-gray-100 text-xs font-bold text-gray-600 py-1 px-2 rounded-lg outline-none">
+            <option>今週</option>
+            <option>先週</option>
+          </select>
         </div>
-        <p id="advice-text" class="text-sm font-medium leading-relaxed text-white/95">素晴らしい大赤字だニャ！</p>
+        
+        <div class="h-40 flex items-end justify-between gap-2 relative">
+          <div class="absolute left-0 right-0 bottom-16 border-t border-dashed border-gray-300 z-0"></div>
+          
+          <div class="w-full flex flex-col justify-end items-center z-10 group">
+            <div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 40px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-400 mt-2">月</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 30px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-400 mt-2">火</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 50px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-400 mt-2">水</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 20px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-400 mt-2">木</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 25px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-400 mt-2">金</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-emerald-500 rounded-b-md bar-grow transform translate-y-[100%] shadow-lg shadow-emerald-500/30" style="height: 45px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-extrabold text-gray-900 mt-2 bg-gray-200 px-2 py-0.5 rounded-full">土</span>
+          </div>
+          <div class="w-full flex flex-col justify-end items-center z-10">
+            <div class="w-full bg-gray-200 rounded-t-md" style="height: 4px; margin-bottom: 64px;"></div>
+            <span class="text-[10px] font-bold text-gray-300 mt-2">日</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
+        <h2 class="text-lg font-extrabold tracking-tight text-gray-900 mb-4">栄養素ポートフォリオ</h2>
+        <div class="space-y-4">
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span class="text-orange-500">Protein (タンパク質)</span>
+              <span class="text-gray-600">85g <span class="text-gray-400">/ 120g</span></span>
+            </div>
+            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-orange-400 to-amber-400" style="width: 70%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span class="text-rose-500">Fat (脂質)</span>
+              <span class="text-gray-600">45g <span class="text-gray-400">/ 60g</span></span>
+            </div>
+            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-rose-400 to-red-400" style="width: 75%"></div>
+            </div>
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-bold mb-1">
+              <span class="text-blue-500">Carbs (炭水化物)</span>
+              <span class="text-gray-600">210g <span class="text-gray-400">/ 250g</span></span>
+            </div>
+            <div class="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+              <div class="h-full bg-gradient-to-r from-cyan-400 to-blue-500" style="width: 84%"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- 取引履歴（明細） -->
-    <div class="pt-2">
-      <div class="flex justify-between items-end px-2 mb-4">
-        <h2 class="text-2xl font-extrabold tracking-tight text-gray-900">本日の取引明細</h2>
-        <button class="text-xs font-bold text-blue-600 flex items-center btn-press">すべて見る <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+    <!-- ビュー3：明細 (Calendar) -->
+    <div id="view-calendar" class="space-y-5 hidden animate-tab">
+      <div class="flex gap-2">
+        <div class="flex-1 bg-white/70 backdrop-blur-md rounded-2xl px-4 py-3 flex items-center gap-2 border border-white shadow-sm">
+          <i data-lucide="search" class="text-gray-400 w-5 h-5"></i>
+          <input type="text" placeholder="取引を検索..." class="bg-transparent border-none outline-none text-sm font-bold w-full placeholder-gray-400">
+        </div>
+        <button class="bg-white/70 backdrop-blur-md rounded-2xl w-12 flex items-center justify-center border border-white shadow-sm btn-press">
+          <i data-lucide="filter" class="text-gray-600 w-5 h-5"></i>
+        </button>
       </div>
-      
-      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[28px] overflow-hidden">
-        <div id="transaction-list" class="divide-y divide-gray-100">
+
+      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden pb-4">
+        <div class="bg-gray-100/50 px-5 py-2 border-b border-white">
+          <span class="text-[11px] font-extrabold text-gray-500 tracking-widest">すべての記録</span>
+        </div>
+        <div id="transaction-list-full" class="divide-y divide-gray-100">
           <!-- JSで動的にリストを生成 -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ビュー4：設定 (User) -->
+    <div id="view-user" class="space-y-6 hidden animate-tab">
+      <div class="flex items-center gap-4 p-4">
+        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-600 shadow-lg flex items-center justify-center text-white border-2 border-white">
+          <i data-lucide="user" class="w-8 h-8"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-extrabold tracking-tight">Data Analyst</h2>
+          <p class="text-sm font-bold text-gray-500">ID: USER-9921</p>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">システム連携</p>
+          <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden divide-y divide-gray-100">
+            <div class="p-4 flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><i data-lucide="heart-pulse" class="w-4 h-4"></i></div>
+                <div>
+                  <span class="font-bold text-sm block">Apple Health 連携</span>
+                  <span class="text-[10px] font-bold text-gray-400">運動・歩数を自動記帳</span>
+                </div>
+              </div>
+              <div class="w-12 h-7 bg-emerald-500 rounded-full relative shadow-inner cursor-pointer transition-colors">
+                <div class="absolute right-1 top-1 w-5 h-5 bg-white rounded-full shadow-sm"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -134,46 +254,41 @@
 
   <!-- ボトムナビゲーション -->
   <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-200/50 px-6 py-2 pb-safe z-30 flex justify-between items-center shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
-    <button class="flex flex-col items-center gap-1 w-16 text-gray-900 btn-press">
-      <i data-lucide="wallet" class="w-6 h-6" stroke-width="2.5"></i>
+    <button id="nav-wallet" onclick="switchTab('wallet')" class="flex flex-col items-center gap-1 w-16 text-gray-900 btn-press">
+      <i data-lucide="wallet" class="w-6 h-6" id="icon-wallet" stroke-width="2.5"></i>
       <span class="text-[10px] font-bold">口座</span>
     </button>
-    <button class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="activity" class="w-6 h-6" stroke-width="2"></i>
+    <button id="nav-activity" onclick="switchTab('activity')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
+      <i data-lucide="activity" class="w-6 h-6" id="icon-activity" stroke-width="2"></i>
       <span class="text-[10px] font-bold">分析</span>
     </button>
     
-    <!-- 記帳（カメラ）ボタン -->
     <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-gray-900 rounded-[22px] flex items-center justify-center text-white shadow-xl shadow-gray-900/20 border-4 border-white btn-press">
       <i data-lucide="camera" class="w-7 h-7" stroke-width="2.5"></i>
     </button>
     
-    <button class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="calendar" class="w-6 h-6" stroke-width="2"></i>
+    <button id="nav-calendar" onclick="switchTab('calendar')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
+      <i data-lucide="calendar" class="w-6 h-6" id="icon-calendar" stroke-width="2"></i>
       <span class="text-[10px] font-bold">明細</span>
     </button>
-    <button class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="user" class="w-6 h-6" stroke-width="2"></i>
+    <button id="nav-user" onclick="switchTab('user')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
+      <i data-lucide="user" class="w-6 h-6" id="icon-user" stroke-width="2"></i>
       <span class="text-[10px] font-bold">設定</span>
     </button>
   </div>
 
   <!-- モーダル（食事の追加） -->
   <div id="modal" class="fixed inset-0 z-50 flex items-end justify-center px-0 pb-0 hidden">
-    <!-- 背景ブラー -->
     <div id="modal-overlay" onclick="closeModal()" class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
-    
-    <!-- シート本体 -->
     <div id="modal-content" class="bg-white w-full rounded-t-[40px] p-6 relative shadow-2xl h-[85vh] flex flex-col border-t border-white/50 transform translate-y-full transition-transform duration-400 ease-out z-10">
       <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
       <div class="flex justify-between items-center mb-6">
-        <h3 class="text-2xl font-extrabold tracking-tight">食事（収入）を記帳</h3>
+        <h3 class="text-2xl font-extrabold tracking-tight">AI 記帳（自動入力）</h3>
         <button onclick="closeModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 btn-press">
           <i data-lucide="x" class="w-4 h-4" stroke-width="3"></i>
         </button>
       </div>
 
-      <!-- 解析中のUI (デフォルト非表示) -->
       <div id="analyzing-ui" class="flex-1 flex flex-col items-center justify-center space-y-6 hidden">
         <div class="relative">
            <div class="absolute inset-0 bg-gray-900/20 blur-xl rounded-2xl animate-pulse"></div>
@@ -182,14 +297,12 @@
            </div>
         </div>
         <div class="text-center">
-          <p class="text-xl font-extrabold text-gray-900 tracking-tight">AIが画像を解析中</p>
-          <p class="text-sm font-bold text-gray-500 mt-2">料理の写真からカロリー収入を推測します...</p>
+          <p class="text-xl font-extrabold text-gray-900 tracking-tight">データをクラウドに送信中</p>
+          <p class="text-sm font-bold text-gray-500 mt-2">スプレッドシートと同期しています...</p>
         </div>
       </div>
 
-      <!-- 入力UI -->
       <div id="input-ui" class="space-y-4 flex-1">
-        <!-- 運動入力は廃止し、食事（収入）であることを強調 -->
         <div class="p-4 border-2 border-orange-100 bg-orange-50 rounded-[20px] flex items-center gap-3 text-orange-600 mb-6">
           <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
             <i data-lucide="trending-up" class="w-5 h-5"></i>
@@ -199,45 +312,123 @@
             <p class="text-[10px] font-bold text-orange-600/80">食べた分だけ口座残高（カロリー）が増加します</p>
           </div>
         </div>
-
         <div class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner">
           <i data-lucide="camera" class="w-12 h-12 mb-3 opacity-50" stroke-width="1.5"></i>
           <p class="font-bold text-sm tracking-wide">料理 / レシートを撮影</p>
         </div>
-        
-        <button onclick="simulateGeminiAI()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
-          <i data-lucide="sparkles" class="w-5 h-5"></i> AIカメラで自動記帳
+        <button onclick="recordToCloud()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
+          <i data-lucide="sparkles" class="w-5 h-5"></i> AI記帳してクラウド保存
         </button>
       </div>
     </div>
   </div>
 
   <script>
-    // --- アプリのステート（状態） ---
-    let transactions = [
-      { id: 1, type: 'expense', category: '基礎代謝', name: '息してるだけで消費', amount: 1500, time: '00:00', icon: '🫀' },
-      { id: 2, type: 'income', category: '朝食', name: 'トーストとコーヒー', amount: 350, time: '08:30', icon: '🍞' },
-      { id: 3, type: 'expense', category: 'ヘルスケア連携', name: '歩数・アクティビティ', amount: 120, time: '09:00', icon: '📱' },
-      { id: 4, type: 'income', category: '昼食', name: '鶏肉のサラダボウル', amount: 450, time: '12:15', icon: '🥗' },
-      { id: 5, type: 'income', category: '間食', name: 'ギリシャヨーグルト', amount: 150, time: '15:00', icon: '🥣' },
-      { id: 6, type: 'expense', category: 'ヘルスケア連携', name: 'ワークアウト', amount: 80, time: '18:30', icon: '📱' },
-      { id: 7, type: 'income', category: '夕食', name: '鮭の塩焼き定食', amount: 850, time: '19:30', icon: '🍱' },
-    ];
+    // ==========================================
+    // ★ GASウェブアプリURLの設定 ★
+    // ==========================================
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKcBABJsv4YyAw1QbWnM6AXrr3w6VTmaf6qMJQxn2KDsW06znPcAYJCqDJAXHaIDsIgA/exec";
 
-    // --- UI更新ロジック ---
+    let transactions = [];
+
+    // アプリ起動時のデータ取得（GET）
+    async function fetchTransactions() {
+      try {
+        const response = await fetch(GAS_WEB_APP_URL);
+        const data = await response.json();
+        
+        // 基礎代謝をデフォルト支出として追加
+        const basalMetabolism = { id: 0, type: 'expense', category: '基礎代謝', name: '息してるだけで消費', amount: 1500, time: '00:00', icon: '🫀' };
+        
+        transactions = [basalMetabolism, ...data];
+        updateUI();
+      } catch (error) {
+        console.error("データの取得に失敗しました:", error);
+        alert("データの取得に失敗しました。URLやCORSの設定を確認してください。");
+      }
+    }
+
+    // クラウド（スプレッドシート）へのデータ送信（POST）
+    async function recordToCloud() {
+      if(navigator.vibrate) navigator.vibrate([10, 50, 10]);
+      
+      const inputUI = document.getElementById('input-ui');
+      const analyzingUI = document.getElementById('analyzing-ui');
+      
+      inputUI.classList.add('hidden');
+      analyzingUI.classList.remove('hidden');
+
+      try {
+        // GAS側で action: 'analyze_and_add' を受けて処理させる
+        const payload = {
+          action: 'analyze_and_add',
+          payload: {}
+        };
+
+        const response = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          redirect: 'follow', // GASのリダイレクトに対応
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+          transactions.push(result.data);
+          updateUI();
+        }
+      } catch (error) {
+        console.error("データの送信に失敗しました:", error);
+        alert("通信エラーが発生しました。");
+      } finally {
+        closeModal();
+      }
+    }
+
+    // --- UI制御ロジック ---
+    const tabTitles = {
+      'wallet': '体内エネルギー収支',
+      'activity': 'データ分析',
+      'calendar': '取引明細',
+      'user': 'システム設定'
+    };
+
+    function switchTab(tabId) {
+      if(navigator.vibrate) navigator.vibrate(5);
+      ['wallet', 'activity', 'calendar', 'user'].forEach(id => {
+        document.getElementById(`view-${id}`).classList.add('hidden');
+        const btn = document.getElementById(`nav-${id}`);
+        btn.classList.remove('text-gray-900');
+        btn.classList.add('text-gray-400');
+        const icon = document.getElementById(`icon-${id}`);
+        if(icon) icon.setAttribute('stroke-width', '2');
+      });
+      const targetView = document.getElementById(`view-${tabId}`);
+      targetView.classList.remove('hidden');
+      targetView.classList.remove('animate-tab');
+      void targetView.offsetWidth; 
+      targetView.classList.add('animate-tab');
+      const activeBtn = document.getElementById(`nav-${tabId}`);
+      activeBtn.classList.remove('text-gray-400');
+      activeBtn.classList.add('text-gray-900');
+      const activeIcon = document.getElementById(`icon-${tabId}`);
+      if(activeIcon) activeIcon.setAttribute('stroke-width', '2.5');
+      document.getElementById('header-title').innerText = tabTitles[tabId];
+    }
+
     function updateUI() {
-      // 計算
-      const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+      const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
+      const totalExpense = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
       const currentBalance = totalIncome - totalExpense;
       const isSurplus = currentBalance > 0;
 
-      // 残高と収支の更新
       document.getElementById('balance-amount').innerText = (isSurplus ? '+' : '') + currentBalance;
       document.getElementById('income-amount').innerText = '+' + totalIncome;
       document.getElementById('expense-amount').innerText = '-' + totalExpense;
 
-      // メインカードの色変更
       const balanceCard = document.getElementById('balance-card');
       const alertPing = document.getElementById('alert-ping');
       if (isSurplus) {
@@ -248,7 +439,6 @@
         alertPing.classList.add('hidden');
       }
 
-      // 猫のアドバイス更新
       const advice = getAdvice(currentBalance, isSurplus);
       const adviceCard = document.getElementById('advice-card');
       adviceCard.className = `rounded-[28px] p-5 bg-gradient-to-r ${advice.gradient} text-white shadow-lg flex gap-4 items-start transform transition-all duration-500`;
@@ -257,42 +447,49 @@
       document.getElementById('advice-role').innerText = advice.role;
       document.getElementById('advice-text').innerText = advice.text;
 
-      // 取引明細リストの生成
-      const listHtml = transactions.sort((a, b) => b.time.localeCompare(a.time)).map(tx => `
+      const sortedTxs = [...transactions].sort((a, b) => b.time.localeCompare(a.time));
+      const recentTxs = sortedTxs.slice(0, 3);
+      document.getElementById('transaction-list-recent').innerHTML = generateTxHtml(recentTxs);
+      document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedTxs);
+      
+      lucide.createIcons();
+    }
+
+    function generateTxHtml(txArray) {
+      if(txArray.length === 0) return `<div class="p-4 text-center text-sm font-bold text-gray-400">取引データがありません</div>`;
+      
+      return txArray.map(tx => `
         <div class="p-4 flex items-center gap-4 active:bg-gray-100 transition-colors cursor-pointer">
           <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border ${tx.type === 'income' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}">
             ${tx.icon}
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-base font-bold text-gray-900 truncate tracking-tight">${tx.name}</h3>
+            <h3 class="text-[15px] font-bold text-gray-900 truncate tracking-tight">${tx.name}</h3>
             <div class="flex items-center gap-2 mt-1">
               <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${tx.type === 'income' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${tx.category}</span>
               <span class="text-xs text-gray-400 font-bold">${tx.time}</span>
             </div>
           </div>
           <div class="text-right shrink-0">
-            <div class="text-xl font-extrabold tracking-tighter tabular-nums ${tx.type === 'income' ? 'text-orange-500' : 'text-blue-500'}">
+            <div class="text-lg font-extrabold tracking-tighter tabular-nums ${tx.type === 'income' ? 'text-orange-500' : 'text-blue-500'}">
               ${tx.type === 'income' ? '+' : '-'}${tx.amount}
             </div>
-            <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">kcal</span>
+            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">kcal</span>
           </div>
         </div>
       `).join('');
-      document.getElementById('transaction-list').innerHTML = listHtml;
     }
 
-    // 猫たちのセリフロジック
     function getAdvice(balance, isSurplus) {
       if (isSurplus) {
-        return { name: "ほたて", role: "黒字経営（ぽっちゃり）", text: "大変だニャ！体内エネルギーが黒字（プラス）になってるぞ！このままだと余剰利益がすべて『脂肪』として内部留保されちゃうニャ🐾", gradient: "from-rose-500 to-red-500", icon: "🚨" };
+        return { name: "システムアラート", role: "黒字（カロリー超過）", text: "体内エネルギーが黒字化しています。このままでは余剰カロリーが脂肪として蓄積されるリスクがあります。アクティビティを増やして赤字化を目指してください。", gradient: "from-rose-500 to-red-500", icon: "🚨" };
       } else if (balance > -300) {
-        return { name: "うに", role: "堅実なアナリスト", text: "見事な赤字経営（マイナス）だニャ！でも油断は禁物。夜中のアイス（臨時収入）が入ると一気に黒字に転落するから気をつけるニャ✨", gradient: "from-blue-500 to-indigo-500", icon: "📊" };
+        return { name: "分析エンジン", role: "適正水準（微赤字）", text: "良好な赤字経営です。ただし、夜間の突発的なカロリー収入（夜食）による黒字転落には警戒が必要です。現在の水準を維持してください。", gradient: "from-blue-500 to-indigo-500", icon: "📊" };
       } else {
-        return { name: "ほたて＆うに", role: "破産（ダイエット成功）", text: "素晴らしい大赤字だニャ！体内エネルギーが枯渇して、過去の貯蓄（脂肪）をガンガン切り崩してる証拠だニャ🐱🎉", gradient: "from-emerald-400 to-teal-500", icon: "📉" };
+        return { name: "分析エンジン", role: "目標達成（大赤字）", text: "理想的なエネルギー収支です。体内エネルギーが枯渇し、備蓄（脂肪）の燃焼サイクルに入っています。素晴らしい運用実績です。", gradient: "from-emerald-400 to-teal-500", icon: "📉" };
       }
     }
 
-    // --- モーダル制御 ---
     const modal = document.getElementById('modal');
     const overlay = document.getElementById('modal-overlay');
     const content = document.getElementById('modal-content');
@@ -300,11 +497,8 @@
     const analyzingUI = document.getElementById('analyzing-ui');
 
     function openModal() {
-      // 疑似Haptic
       if(navigator.vibrate) navigator.vibrate(10);
-      
       modal.classList.remove('hidden');
-      // 少し遅らせてアニメーションクラスを付与
       setTimeout(() => {
         overlay.classList.remove('opacity-0');
         overlay.classList.add('opacity-100');
@@ -318,39 +512,19 @@
       overlay.classList.add('opacity-0');
       content.classList.remove('translate-y-0');
       content.classList.add('translate-y-full');
-      
-      // アニメーション完了後にhiddenにする
       setTimeout(() => {
         modal.classList.add('hidden');
         inputUI.classList.remove('hidden');
         analyzingUI.classList.add('hidden');
-      }, 400); // duration-400に合わせる
+      }, 400); 
     }
 
-    // --- AI解析モック機能 ---
-    function simulateGeminiAI() {
-      if(navigator.vibrate) navigator.vibrate([10, 50, 10]);
-      
-      inputUI.classList.add('hidden');
-      analyzingUI.classList.remove('hidden');
-
-      setTimeout(() => {
-        // 新しい取引（夜食）を追加
-        const newIncome = { id: Date.now(), type: 'income', category: '夜食', name: '夜中のアイス', amount: 220, time: '22:30', icon: '🍨' };
-        transactions.push(newIncome);
-        
-        updateUI();
-        closeModal();
-      }, 2500);
-    }
-
-    // --- 初期化 ---
+    // --- 初期化（通信開始） ---
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      updateUI();
+      fetchTransactions(); // GASからデータを取得
     });
 
   </script>
 </body>
 </html>
-

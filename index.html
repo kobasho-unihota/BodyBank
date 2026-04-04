@@ -32,14 +32,12 @@
     .btn-press:active { transform: scale(0.92); }
     
     .bar-grow { transition: height 1s cubic-bezier(0.16, 1, 0.3, 1); }
-
-    /* トースト用の追加スタイル */
     .top-safe { top: env(safe-area-inset-top, 1rem); }
   </style>
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 pb-32 relative overflow-x-hidden min-h-screen">
 
-  <!-- トースト通知（メッセージボックス） -->
+  <!-- トースト通知 -->
   <div id="toast" class="fixed top-safe mt-4 left-4 right-4 z-[100] transform -translate-y-[150%] opacity-0 transition-all duration-300 pointer-events-none flex justify-center">
     <div class="bg-gray-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
       <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
@@ -134,11 +132,8 @@
             <option>先週</option>
           </select>
         </div>
-        
         <div class="h-40 flex items-end justify-between gap-2 relative">
           <div class="absolute left-0 right-0 bottom-16 border-t border-dashed border-gray-300 z-0"></div>
-          
-          <!-- 月〜日グラフモック -->
           <div class="w-full flex flex-col justify-end items-center z-10 group"><div class="w-full bg-rose-400 rounded-t-md bar-grow" style="height: 40px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">月</span></div>
           <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 30px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">火</span></div>
           <div class="w-full flex flex-col justify-end items-center z-10"><div class="w-full bg-emerald-400 rounded-b-md bar-grow transform translate-y-[100%]" style="height: 50px; margin-bottom: 64px;"></div><span class="text-[10px] font-bold text-gray-400 mt-2">水</span></div>
@@ -173,7 +168,6 @@
       </div>
 
       <div class="space-y-4">
-        <!-- AI API設定（重要） -->
         <div>
           <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">AI エンジン設定</p>
           <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden p-5">
@@ -182,7 +176,6 @@
                 <i data-lucide="key" class="w-4 h-4 text-blue-500"></i> Gemini API Key
               </label>
               <input type="password" id="api-key-input" class="w-full bg-white rounded-xl px-4 py-3 text-sm font-medium outline-none border border-gray-200 focus:border-blue-500 transition-colors shadow-inner" placeholder="AIzaSy...">
-              <p class="text-[10px] font-bold text-gray-400 mt-2">※キーはiPhone内のローカルストレージにのみ保存され、外部サーバーには送信されません。</p>
             </div>
             <button onclick="saveApiKey()" class="w-full bg-blue-50 text-blue-600 font-extrabold text-sm py-3 rounded-xl active:scale-95 transition-transform">
               端末に保存する
@@ -198,7 +191,7 @@
                 <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><i data-lucide="heart-pulse" class="w-4 h-4"></i></div>
                 <div>
                   <span class="font-bold text-sm block">Apple Health 連携</span>
-                  <span class="text-[10px] font-bold text-gray-400">運動・歩数を自動記帳</span>
+                  <span class="text-[10px] font-bold text-gray-400">ショートカットから受信</span>
                 </div>
               </div>
               <div class="w-12 h-7 bg-emerald-500 rounded-full relative shadow-inner cursor-pointer transition-colors">
@@ -221,11 +214,9 @@
       <i data-lucide="activity" class="w-6 h-6" id="icon-activity" stroke-width="2"></i>
       <span class="text-[10px] font-bold">分析</span>
     </button>
-    
     <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-gray-900 rounded-[22px] flex items-center justify-center text-white shadow-xl shadow-gray-900/20 border-4 border-white btn-press">
       <i data-lucide="camera" class="w-7 h-7" stroke-width="2.5"></i>
     </button>
-    
     <button id="nav-calendar" onclick="switchTab('calendar')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
       <i data-lucide="calendar" class="w-6 h-6" id="icon-calendar" stroke-width="2"></i>
       <span class="text-[10px] font-bold">明細</span>
@@ -248,6 +239,7 @@
         </button>
       </div>
 
+      <!-- 解析中のUI -->
       <div id="analyzing-ui" class="flex-1 flex flex-col items-center justify-center space-y-6 hidden">
         <div class="relative">
            <div class="absolute inset-0 bg-gray-900/20 blur-xl rounded-2xl animate-pulse"></div>
@@ -261,30 +253,41 @@
         </div>
       </div>
 
-      <div id="input-ui" class="space-y-4 flex-1">
-        <div class="p-4 border-2 border-orange-100 bg-orange-50 rounded-[20px] flex items-center gap-3 text-orange-600 mb-6">
-          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-            <i data-lucide="trending-up" class="w-5 h-5"></i>
+      <!-- 入力UI -->
+      <div id="input-ui" class="space-y-4 flex-1 overflow-y-auto pb-4">
+        
+        <!-- ★ 時間とカテゴリーの手動入力エリア ★ -->
+        <div class="flex gap-3 mb-2">
+          <div class="flex-1">
+            <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">カテゴリー</label>
+            <div class="relative">
+              <select id="meal-category" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none appearance-none shadow-inner">
+                <option value="朝食">朝食</option>
+                <option value="昼食">昼食</option>
+                <option value="夕食">夕食</option>
+                <option value="間食">間食</option>
+                <option value="夜食">夜食</option>
+              </select>
+              <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
+            </div>
           </div>
-          <div>
-            <p class="font-extrabold text-sm tracking-tight text-gray-900">食事の記録</p>
-            <p class="text-[10px] font-bold text-orange-600/80">食べた分だけ口座残高（カロリー）が増加します</p>
+          <div class="flex-1">
+            <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">時間</label>
+            <input type="time" id="meal-time" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none shadow-inner">
           </div>
         </div>
-        
-        <!-- カメラ起動エリア (<label>に変更して直接起動させる) -->
-        <label for="image-input" id="camera-area" class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner cursor-pointer overflow-hidden relative btn-press block">
+
+        <label for="image-input" id="camera-area" class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner cursor-pointer overflow-hidden relative btn-press block mt-2">
           <div id="camera-placeholder" class="flex flex-col items-center pointer-events-none">
             <i data-lucide="camera" class="w-12 h-12 mb-3 opacity-50" stroke-width="1.5"></i>
             <p class="font-bold text-sm tracking-wide">タップして料理を撮影</p>
           </div>
-          <!-- 撮影した画像のプレビュー -->
           <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none" />
           <input type="file" id="image-input" accept="image/*" class="hidden">
         </label>
         
         <button onclick="analyzeAndRecord()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
-          <i data-lucide="sparkles" class="w-5 h-5"></i> AI記帳してクラウド保存
+          <i data-lucide="sparkles" class="w-5 h-5"></i> AI記帳して保存
         </button>
       </div>
     </div>
@@ -296,7 +299,6 @@
     // ==========================================
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKcBABJsv4YyAw1QbWnM6AXrr3w6VTmaf6qMJQxn2KDsW06znPcAYJCqDJAXHaIDsIgA/exec";
     
-    // APIキーは端末(localStorage)から取得
     let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
     let selectedImageBase64 = null;
     let transactions = [];
@@ -306,7 +308,6 @@
       const toast = document.getElementById('toast');
       const msgEl = document.getElementById('toast-message');
       const icon = toast.querySelector('i');
-      
       msgEl.innerText = message;
       if (isError) {
         icon.setAttribute('data-lucide', 'alert-circle');
@@ -318,30 +319,40 @@
         icon.classList.replace('text-blue-400', 'text-emerald-400');
       }
       lucide.createIcons();
-
       toast.classList.remove('-translate-y-[150%]', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
-
       setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('-translate-y-[150%]', 'opacity-0');
       }, 3000);
     }
 
+    // --- 日時フォーマット修正機能（スプシバグ対策） ---
+    function formatTime(timeStr) {
+      if (!timeStr) return "--:--";
+      // ISO形式 (1899-12-30T11:55:00.000Z など) を正確なローカル時間に変換
+      if (typeof timeStr === 'string' && timeStr.includes('T')) {
+        const d = new Date(timeStr);
+        if (!isNaN(d.getTime())) {
+          return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+        }
+      }
+      return timeStr; // すでに "20:30" などの文字列ならそのまま
+    }
+
     // --- 初期化 ---
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
-      document.getElementById('api-key-input').value = geminiApiKey; // 設定タブに入力しておく
-      fetchTransactions(); // GASから既存データを取得
+      document.getElementById('api-key-input').value = geminiApiKey;
+      fetchTransactions();
     });
 
-    // --- APIキーの保存 ---
     function saveApiKey() {
       const val = document.getElementById('api-key-input').value.trim();
       if(val) {
         localStorage.setItem('gemini_api_key', val);
         geminiApiKey = val;
-        showToast('APIキーを端末に保存しました。');
+        showToast('APIキーを保存しました。');
       } else {
         showToast('APIキーを入力してください。', true);
       }
@@ -351,13 +362,9 @@
     document.getElementById('image-input').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      
       const reader = new FileReader();
       reader.onload = (event) => {
-        // 画像データをBase64として保持（プレフィックス 'data:image/jpeg;base64,' を除去）
         selectedImageBase64 = event.target.result.split(',')[1];
-        
-        // プレビュー表示
         document.getElementById('preview-img').src = event.target.result;
         document.getElementById('preview-img').classList.remove('hidden');
         document.getElementById('camera-placeholder').classList.add('hidden');
@@ -365,11 +372,10 @@
       reader.readAsDataURL(file);
     });
 
-    // --- Gemini API (PWA側から直接呼び出し) ---
+    // --- Gemini API ---
     async function callGeminiAPI(base64Image) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
-      const prompt = "この食事の写真を解析して、一般的なカロリー（kcal）を推測してください。結果はJSONで返してください。完璧でなくて構いません。少し厳しめ（高め）にカロリーを見積もってください。";
-      
+      const prompt = "この食事の写真を解析して、一般的なカロリー（kcal）と料理名、アイコンを推測してください。結果はJSONで返してください。完璧でなくて構いません。少し厳しめ（高め）に見積もってください。";
       const payload = {
         contents: [{
           parts: [
@@ -382,12 +388,11 @@
           responseSchema: {
             type: "OBJECT",
             properties: {
-              category: { type: "STRING", description: "朝食、昼食、夕食、間食、夜食など" },
               name: { type: "STRING", description: "料理の簡潔な名前" },
               amount: { type: "INTEGER", description: "推測される総カロリー数(kcal)" },
               icon: { type: "STRING", description: "料理を表す絵文字1文字" }
             },
-            required: ["category", "name", "amount", "icon"]
+            required: ["name", "amount", "icon"]
           }
         }
       };
@@ -397,21 +402,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
-      
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error?.message || "APIエラー");
-      }
-      
+      if (!res.ok) throw new Error("APIエラー");
       const data = await res.json();
-      const text = data.candidates[0].content.parts[0].text;
-      return JSON.parse(text);
+      return JSON.parse(data.candidates[0].content.parts[0].text);
     }
 
     // --- フロントエンドでの解析 ＆ GASへの保存 ---
     async function analyzeAndRecord() {
       if (!geminiApiKey) {
-        showToast("設定タブからGemini APIキーを設定してください。", true);
+        showToast("Gemini APIキーを設定してください。", true);
         switchTab('user');
         closeModal();
         return;
@@ -420,7 +419,6 @@
         showToast("料理の写真を撮影または選択してください。", true);
         return;
       }
-      
       if(navigator.vibrate) navigator.vibrate([10, 50, 10]);
       
       const inputUI = document.getElementById('input-ui');
@@ -428,34 +426,33 @@
       const analyzingTitle = document.getElementById('analyzing-title');
       const analyzingDesc = document.getElementById('analyzing-desc');
       
+      // UIで手動入力されたカテゴリーと時間を取得
+      const selectedCategory = document.getElementById('meal-category').value;
+      const selectedTime = document.getElementById('meal-time').value;
+
       inputUI.classList.add('hidden');
       analyzingUI.classList.remove('hidden');
       
       try {
-        // 1. Gemini APIで画像を解析
         analyzingTitle.innerText = "Gemini AI 解析中";
         analyzingDesc.innerText = "料理の写真からカロリーを推測しています...";
         
         const aiResult = await callGeminiAPI(selectedImageBase64);
         
-        // 解析結果を整形
+        // 解析結果とUI入力をマージ
         const newIncome = {
           type: 'income',
-          category: aiResult.category || "食事",
+          category: selectedCategory, // UI優先
           name: aiResult.name || "不明な料理",
           amount: aiResult.amount || 0,
-          time: new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' }),
+          time: selectedTime,         // UI優先
           icon: aiResult.icon || "🍽️"
         };
 
-        // 2. GAS（スプレッドシート）へ保存
         analyzingTitle.innerText = "クラウドへ同期中";
-        analyzingDesc.innerText = "AIの解析結果をスプレッドシートに保存しています...";
+        analyzingDesc.innerText = "データをスプレッドシートに保存しています...";
         
-        const gasPayload = {
-          action: 'add', // AI解析は完了しているので、単純な追加アクション
-          payload: newIncome
-        };
+        const gasPayload = { action: 'add', payload: newIncome };
 
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
@@ -465,7 +462,6 @@
         });
 
         const result = await response.json();
-        
         if (result.status === 'success') {
           transactions.push(result.data);
           updateUI();
@@ -475,7 +471,7 @@
         }
       } catch (error) {
         console.error("エラー:", error);
-        showToast("処理に失敗しました: " + error.message, true);
+        showToast("処理に失敗しました", true);
       } finally {
         closeModal();
       }
@@ -494,7 +490,7 @@
         updateUI();
       } catch (error) {
         console.error("データの取得に失敗:", error);
-        showToast("データの取得に失敗しました。URLを確認してください。", true);
+        showToast("データの取得に失敗しました", true);
       }
     }
 
@@ -565,8 +561,8 @@
           <div class="flex-1 min-w-0">
             <h3 class="text-[15px] font-bold text-gray-900 truncate tracking-tight">${tx.name}</h3>
             <div class="flex items-center gap-2 mt-1">
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md ${tx.type === 'income' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${tx.category}</span>
-              <span class="text-xs text-gray-400 font-bold">${tx.time}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${tx.type === 'income' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${tx.category}</span>
+              <span class="text-xs text-gray-400 font-bold whitespace-nowrap">${formatTime(tx.time)}</span>
             </div>
           </div>
           <div class="text-right shrink-0">
@@ -596,12 +592,24 @@
     function openModal() {
       if(navigator.vibrate) navigator.vibrate(10);
       
-      // 画像プレビューをリセット
+      // 画像プレビューリセット
       document.getElementById('preview-img').src = "";
       document.getElementById('preview-img').classList.add('hidden');
       document.getElementById('camera-placeholder').classList.remove('hidden');
       selectedImageBase64 = null;
-      document.getElementById('image-input').value = ""; // file inputリセット
+      document.getElementById('image-input').value = "";
+      
+      // --- 時間とカテゴリーを現在時刻から自動設定 ---
+      const now = new Date();
+      document.getElementById('meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      
+      const h = now.getHours();
+      let defaultCategory = "間食";
+      if (h >= 5 && h < 10) defaultCategory = "朝食";
+      else if (h >= 10 && h < 15) defaultCategory = "昼食";
+      else if (h >= 17 && h < 22) defaultCategory = "夕食";
+      else if (h >= 22 || h < 5) defaultCategory = "夜食";
+      document.getElementById('meal-category').value = defaultCategory;
 
       modal.classList.remove('hidden');
       setTimeout(() => {
@@ -626,3 +634,5 @@
   </script>
 </body>
 </html>
+
+

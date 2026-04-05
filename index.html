@@ -261,41 +261,44 @@
       </div>
 
       <div id="input-ui" class="space-y-4 flex-1 overflow-y-auto pb-4">
-        
-        <div class="p-4 border-2 border-gray-100 bg-gray-50 rounded-[20px] flex items-center gap-3 text-gray-600 mb-6">
+        <div class="p-4 border-2 border-gray-100 bg-gray-50 rounded-[20px] flex items-center gap-3 text-gray-600 mb-4">
           <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
             <i data-lucide="scan-line" class="w-5 h-5 text-gray-700"></i>
           </div>
           <div class="flex-1">
             <p class="font-extrabold text-sm tracking-tight text-gray-900">食事・データの記録</p>
-            <p class="text-[10px] font-bold text-gray-500">食事は収入、基礎代謝や運動は支出として記録されます</p>
+            <p class="text-[10px] font-bold text-gray-500">食事は収入、体組成は支出として記録されます</p>
           </div>
         </div>
 
+        <!-- ★ 日付と時間の入力エリア ★ -->
         <div class="flex gap-3 mb-2">
-          <div class="flex-1 opacity-60">
-            <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">カテゴリー</label>
-            <div class="relative">
-              <select id="meal-category" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none appearance-none shadow-inner">
-                <option value="朝食">朝食</option>
-                <option value="昼食">昼食</option>
-                <option value="夕食">夕食</option>
-                <option value="間食">間食</option>
-                <option value="夜食">夜食</option>
-              </select>
-              <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
-            </div>
-            <p class="text-[9px] text-gray-400 mt-1 font-bold pl-1">※体組成データの場合は自動で上書きされます</p>
+          <div class="flex-1 min-w-0">
+            <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">日付</label>
+            <input type="date" id="meal-date" class="w-full min-w-0 bg-gray-100/50 border border-gray-200 rounded-xl px-2 py-3 text-sm font-bold text-gray-900 outline-none shadow-inner appearance-none">
           </div>
-          <div class="flex-1">
+          <div class="flex-1 min-w-0">
             <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">時間</label>
-            <input type="time" id="meal-time" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none shadow-inner">
+            <input type="time" id="meal-time" class="w-full min-w-0 bg-gray-100/50 border border-gray-200 rounded-xl px-2 py-3 text-sm font-bold text-gray-900 outline-none shadow-inner appearance-none">
           </div>
         </div>
 
-        <!-- 画像入力エリア（カメラ / ペースト） -->
+        <div class="mb-2">
+          <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">カテゴリー</label>
+          <div class="relative">
+            <select id="meal-category" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none appearance-none shadow-inner">
+              <option value="朝食">朝食</option>
+              <option value="昼食">昼食</option>
+              <option value="夕食">夕食</option>
+              <option value="間食">間食</option>
+              <option value="夜食">夜食</option>
+            </select>
+            <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
+          </div>
+          <p class="text-[9px] text-gray-400 mt-1 font-bold pl-1">※体組成データの場合は自動で上書きされます</p>
+        </div>
+
         <div class="w-full aspect-video bg-gray-50 rounded-[28px] border-2 border-dashed border-gray-200 shadow-inner relative mt-2 overflow-hidden">
-          
           <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center gap-6 bg-gray-50 z-10">
             <label for="image-input" class="flex flex-col items-center cursor-pointer btn-press">
               <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-2 text-gray-600 border border-gray-100">
@@ -465,7 +468,7 @@
       document.getElementById('camera-placeholder').classList.remove('hidden');
     }
 
-    // --- Gemini API (スマート振り分け対応) ---
+    // --- Gemini API ---
     async function callGeminiAPI(base64Image) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
       const prompt = `この画像を解析してください。
@@ -505,6 +508,7 @@
       return JSON.parse(data.candidates[0].content.parts[0].text);
     }
 
+    // --- フロントエンドでの解析 ＆ GASへの保存 ---
     async function analyzeAndRecord() {
       if (!geminiApiKey) {
         showToast("Gemini APIキーを設定してください。", true);
@@ -524,7 +528,17 @@
       const analyzingDesc = document.getElementById('analyzing-desc');
       
       const selectedCategory = document.getElementById('meal-category').value;
+      const selectedDate = document.getElementById('meal-date').value;
       const selectedTime = document.getElementById('meal-time').value;
+
+      // 日付と時間からタイムスタンプを生成
+      let customTimestamp = new Date().toISOString();
+      if (selectedDate && selectedTime) {
+        const d = new Date(`${selectedDate}T${selectedTime}:00`);
+        if (!isNaN(d.getTime())) {
+          customTimestamp = d.toISOString();
+        }
+      }
 
       inputUI.classList.add('hidden');
       analyzingUI.classList.remove('hidden');
@@ -534,17 +548,16 @@
         analyzingDesc.innerText = "画像の種類を判別してデータを推測しています...";
         
         const aiResult = await callGeminiAPI(selectedImageBase64);
-        
         const isBodyComp = aiResult.is_body_composition;
         
-        // AIの判定結果によって、収入（食事）か支出（基礎代謝）かを振り分ける
         const newRecord = {
           type: isBodyComp ? 'expense' : 'income',
           category: isBodyComp ? '基礎代謝' : selectedCategory,
           name: aiResult.name || (isBodyComp ? "基礎代謝" : "不明な料理"),
           amount: aiResult.amount || 0,
           time: selectedTime,
-          icon: aiResult.icon || (isBodyComp ? "⚖️" : "🍽️")
+          icon: aiResult.icon || (isBodyComp ? "⚖️" : "🍽️"),
+          timestamp: customTimestamp // ★指定した日時を送信★
         };
 
         analyzingTitle.innerText = "クラウドへ同期中";
@@ -562,11 +575,14 @@
         const result = await response.json();
         if (result.status === 'success') {
           const record = result.data;
-          record.timestamp = new Date().toISOString();
           
-          // 実測の基礎代謝が追加された場合、本日の仮データ(id:0)を削除する
+          // GAS側で timestamp を優先させるようにコード修正されていれば、
+          // 返ってくる record.timestamp は customTimestamp と一致するはずですが、
+          // 念のためフロントエンドでも上書きしておきます。
+          record.timestamp = customTimestamp;
+          
           if (isBodyComp) {
-            const todayStr = new Date().toDateString();
+            const todayStr = new Date(customTimestamp).toDateString();
             transactions = transactions.filter(t => !(t.id === 0 && t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr));
           }
           
@@ -574,9 +590,9 @@
           updateUI();
           
           if (isBodyComp) {
-            showToast(`体組成データを検知しました。基礎代謝(${record.amount}kcal)を支出として記録しました！`);
+            showToast(`基礎代謝(${record.amount}kcal)を ${selectedDate} の支出として記録しました！`);
           } else {
-            showToast('食事データ（収入）の記録が完了しました！');
+            showToast(`食事データを ${selectedDate} の収入として記録しました！`);
           }
         } else {
           throw new Error("GASへの保存に失敗しました");
@@ -599,7 +615,6 @@
         const data = await response.json();
         transactions = data;
         
-        // 仮データの補完
         const todayStr = new Date().toDateString();
         const hasTodayBasal = transactions.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
         if (!hasTodayBasal) {
@@ -692,7 +707,12 @@
       document.getElementById('advice-role').innerText = advice.role;
       document.getElementById('advice-text').innerText = advice.text;
 
-      const sortedTodayTxs = [...todayTxs].sort((a, b) => b.time.localeCompare(a.time));
+      const sortedTodayTxs = [...todayTxs].sort((a, b) => {
+        const tA = a.time || "";
+        const tB = b.time || "";
+        return tB.localeCompare(tA);
+      });
+      
       const sortedMonthlyTxs = [...monthlyTxs].sort((a, b) => {
         const dateA = a.timestamp ? new Date(a.timestamp) : new Date();
         const dateB = b.timestamp ? new Date(b.timestamp) : new Date();
@@ -758,6 +778,12 @@
       clearImage();
       
       const now = new Date();
+      
+      // ★ デフォルトで現在の日付と時間をセット ★
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      document.getElementById('meal-date').value = `${yyyy}-${mm}-${dd}`;
       document.getElementById('meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
       const h = now.getHours();
@@ -791,5 +817,6 @@
   </script>
 </body>
 </html>
+
 
 

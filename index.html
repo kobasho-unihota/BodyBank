@@ -37,7 +37,6 @@
 </head>
 <body class="bg-gray-50 font-sans text-gray-900 pb-32 relative overflow-x-hidden min-h-screen">
 
-  <!-- トースト通知 -->
   <div id="toast" class="fixed top-safe mt-4 left-4 right-4 z-[100] transform -translate-y-[150%] opacity-0 transition-all duration-300 pointer-events-none flex justify-center">
     <div class="bg-gray-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
       <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
@@ -61,10 +60,7 @@
 
   <main class="px-4 mt-2 relative z-10">
     
-    <!-- ビュー1：口座 (Wallet) -->
     <div id="view-wallet" class="space-y-5 animate-tab">
-      
-      <!-- メイン残高カード (月次) -->
       <div id="balance-card" class="p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20">
         <div class="absolute -right-10 -top-10 opacity-10 mix-blend-overlay">
           <i data-lucide="trending-down" class="w-40 h-40"></i>
@@ -82,7 +78,6 @@
               <span id="monthly-balance-amount" class="text-6xl font-extrabold tracking-tighter tabular-nums transition-all duration-500">-</span>
               <span class="text-lg font-bold text-white/80">kcal</span>
             </div>
-            <!-- 脂肪換算バー -->
             <div class="mt-3">
               <div class="flex justify-between text-[10px] font-bold text-white/80 mb-1">
                 <span>脂肪燃焼まで</span>
@@ -95,7 +90,6 @@
           </div>
         </div>
 
-        <!-- 本日のキャッシュフロー -->
         <div class="mt-6 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 relative z-10">
           <div class="flex flex-col">
             <div class="flex items-center gap-1.5 text-[11px] text-white/80 mb-0.5">
@@ -241,7 +235,7 @@
     </button>
   </div>
 
-  <!-- モーダル（食事の追加） -->
+  <!-- モーダル（データ記録） -->
   <div id="modal" class="fixed inset-0 z-50 flex items-end justify-center px-0 pb-0 hidden">
     <div id="modal-overlay" onclick="closeModal()" class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
     <div id="modal-content" class="bg-white w-full rounded-t-[40px] p-6 relative shadow-2xl h-[85vh] flex flex-col border-t border-white/50 transform translate-y-full transition-transform duration-400 ease-out z-10">
@@ -262,13 +256,24 @@
         </div>
         <div class="text-center">
           <p id="analyzing-title" class="text-xl font-extrabold text-gray-900 tracking-tight">AIが画像を解析中</p>
-          <p id="analyzing-desc" class="text-sm font-bold text-gray-500 mt-2">料理の写真からカロリー収入を推測します...</p>
+          <p id="analyzing-desc" class="text-sm font-bold text-gray-500 mt-2">画像の種類を判別して推測しています...</p>
         </div>
       </div>
 
       <div id="input-ui" class="space-y-4 flex-1 overflow-y-auto pb-4">
-        <div class="flex gap-3 mb-2">
+        
+        <div class="p-4 border-2 border-gray-100 bg-gray-50 rounded-[20px] flex items-center gap-3 text-gray-600 mb-6">
+          <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
+            <i data-lucide="scan-line" class="w-5 h-5 text-gray-700"></i>
+          </div>
           <div class="flex-1">
+            <p class="font-extrabold text-sm tracking-tight text-gray-900">食事・データの記録</p>
+            <p class="text-[10px] font-bold text-gray-500">食事は収入、基礎代謝や運動は支出として記録されます</p>
+          </div>
+        </div>
+
+        <div class="flex gap-3 mb-2">
+          <div class="flex-1 opacity-60">
             <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">カテゴリー</label>
             <div class="relative">
               <select id="meal-category" class="w-full bg-gray-100/50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 outline-none appearance-none shadow-inner">
@@ -280,6 +285,7 @@
               </select>
               <i data-lucide="chevron-down" class="absolute right-3 top-3.5 w-4 h-4 text-gray-400 pointer-events-none"></i>
             </div>
+            <p class="text-[9px] text-gray-400 mt-1 font-bold pl-1">※体組成データの場合は自動で上書きされます</p>
           </div>
           <div class="flex-1">
             <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">時間</label>
@@ -287,14 +293,32 @@
           </div>
         </div>
 
-        <label for="image-input" id="camera-area" class="w-full aspect-video bg-gray-50 rounded-[28px] flex flex-col items-center justify-center text-gray-400 border-2 border-dashed border-gray-200 shadow-inner cursor-pointer overflow-hidden relative btn-press block mt-2">
-          <div id="camera-placeholder" class="flex flex-col items-center pointer-events-none">
-            <i data-lucide="camera" class="w-12 h-12 mb-3 opacity-50" stroke-width="1.5"></i>
-            <p class="font-bold text-sm tracking-wide">タップして料理を撮影</p>
+        <!-- 画像入力エリア（カメラ / ペースト） -->
+        <div class="w-full aspect-video bg-gray-50 rounded-[28px] border-2 border-dashed border-gray-200 shadow-inner relative mt-2 overflow-hidden">
+          
+          <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center gap-6 bg-gray-50 z-10">
+            <label for="image-input" class="flex flex-col items-center cursor-pointer btn-press">
+              <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-2 text-gray-600 border border-gray-100">
+                <i data-lucide="camera" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-extrabold text-gray-500">カメラ / 写真</span>
+              <input type="file" id="image-input" accept="image/*" class="hidden">
+            </label>
+
+            <button onclick="pasteFromClipboard()" class="flex flex-col items-center cursor-pointer btn-press">
+              <div class="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-2 text-blue-500 border border-blue-50">
+                <i data-lucide="clipboard-paste" class="w-6 h-6"></i>
+              </div>
+              <span class="text-[11px] font-extrabold text-blue-500">ペースト</span>
+            </button>
           </div>
-          <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none" />
-          <input type="file" id="image-input" accept="image/*" class="hidden">
-        </label>
+
+          <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none z-0" />
+          
+          <button id="clear-img-btn" onclick="clearImage(event)" class="absolute top-3 right-3 w-8 h-8 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hidden z-20 btn-press">
+            <i data-lucide="x" class="w-4 h-4"></i>
+          </button>
+        </div>
         
         <button onclick="analyzeAndRecord()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-4 shadow-xl shadow-gray-900/20">
           <i data-lucide="sparkles" class="w-5 h-5"></i> AI記帳して保存
@@ -311,7 +335,7 @@
     
     let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
     let selectedImageBase64 = null;
-    let transactions = []; // 全データ
+    let transactions = [];
 
     // --- トースト通知機能 ---
     function showToast(message, isError = false) {
@@ -348,15 +372,11 @@
       return timeStr;
     }
 
-    // --- 初期化 ---
     document.addEventListener("DOMContentLoaded", () => {
       lucide.createIcons();
       document.getElementById('api-key-input').value = geminiApiKey;
-      
-      // 今月のラベルを設定 (例: "4月の累計収支")
       const now = new Date();
       document.getElementById('current-month-label').innerText = `${now.getMonth() + 1}月の累計収支`;
-      
       fetchTransactions();
     });
 
@@ -371,24 +391,88 @@
       }
     }
 
-    // --- カメラ（画像選択）機能 ---
+    function setImageToPreview(base64Data, dataUrl) {
+      selectedImageBase64 = base64Data;
+      document.getElementById('preview-img').src = dataUrl;
+      document.getElementById('preview-img').classList.remove('hidden');
+      document.getElementById('camera-placeholder').classList.add('hidden');
+      document.getElementById('clear-img-btn').classList.remove('hidden');
+    }
+
     document.getElementById('image-input').addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
       const reader = new FileReader();
       reader.onload = (event) => {
-        selectedImageBase64 = event.target.result.split(',')[1];
-        document.getElementById('preview-img').src = event.target.result;
-        document.getElementById('preview-img').classList.remove('hidden');
-        document.getElementById('camera-placeholder').classList.add('hidden');
+        const base64 = event.target.result.split(',')[1];
+        setImageToPreview(base64, event.target.result);
       };
       reader.readAsDataURL(file);
     });
 
-    // --- Gemini API ---
+    async function pasteFromClipboard() {
+      if(navigator.vibrate) navigator.vibrate(10);
+      try {
+        const clipboardItems = await navigator.clipboard.read();
+        let imageFound = false;
+        for (const clipboardItem of clipboardItems) {
+          const imageTypes = clipboardItem.types.filter(type => type.startsWith('image/'));
+          for (const imageType of imageTypes) {
+            const blob = await clipboardItem.getType(imageType);
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const base64 = event.target.result.split(',')[1];
+              setImageToPreview(base64, event.target.result);
+            };
+            reader.readAsDataURL(blob);
+            imageFound = true;
+            break;
+          }
+          if (imageFound) break;
+        }
+        if (!imageFound) showToast("クリップボードに画像が見つかりません", true);
+      } catch (error) {
+        showToast("クリップボードの読み取りに失敗しました。ペーストを許可してください。", true);
+      }
+    }
+
+    document.addEventListener('paste', (e) => {
+      if (document.getElementById('modal').classList.contains('hidden')) return;
+      const items = e.clipboardData.items;
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const base64 = event.target.result.split(',')[1];
+            setImageToPreview(base64, event.target.result);
+          };
+          reader.readAsDataURL(blob);
+          e.preventDefault();
+          showToast('クリップボードから画像を読み込みました');
+          break;
+        }
+      }
+    });
+
+    function clearImage(e) {
+      if(e) e.stopPropagation();
+      selectedImageBase64 = null;
+      document.getElementById('image-input').value = "";
+      document.getElementById('preview-img').src = "";
+      document.getElementById('preview-img').classList.add('hidden');
+      document.getElementById('clear-img-btn').classList.add('hidden');
+      document.getElementById('camera-placeholder').classList.remove('hidden');
+    }
+
+    // --- Gemini API (スマート振り分け対応) ---
     async function callGeminiAPI(base64Image) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
-      const prompt = "この食事の写真を解析して、一般的なカロリー（kcal）と料理名、アイコンを推測してください。結果はJSONで返してください。完璧でなくて構いません。少し厳しめ（高め）に見積もってください。";
+      const prompt = `この画像を解析してください。
+      食事の写真の場合は一般的なカロリー(kcal)を推測してください。
+      体重計、体組成計、またはヘルスケアアプリのスクリーンショットの場合は、画像に表示されている「基礎代謝量」または「基礎代謝」の数値(kcal)を正確に読み取ってください。
+      結果は必ずJSONで返してください。`;
+
       const payload = {
         contents: [{
           parts: [
@@ -401,11 +485,12 @@
           responseSchema: {
             type: "OBJECT",
             properties: {
-              name: { type: "STRING", description: "料理の簡潔な名前" },
-              amount: { type: "INTEGER", description: "推測される総カロリー数(kcal)" },
-              icon: { type: "STRING", description: "料理を表す絵文字1文字" }
+              is_body_composition: { type: "BOOLEAN", description: "画像が体重計や体組成計、ヘルスケアアプリのスクリーンショットである場合はtrue" },
+              name: { type: "STRING", description: "食事の場合は料理の簡潔な名前。体組成計の場合は'基礎代謝'" },
+              amount: { type: "INTEGER", description: "食事の場合は推測される総カロリー数(kcal)。体組成計の場合は読み取った基礎代謝の数値" },
+              icon: { type: "STRING", description: "食事を表す絵文字1文字。体組成計の場合は ⚖️ または 🫀" }
             },
-            required: ["name", "amount", "icon"]
+            required: ["is_body_composition", "name", "amount", "icon"]
           }
         }
       };
@@ -420,7 +505,6 @@
       return JSON.parse(data.candidates[0].content.parts[0].text);
     }
 
-    // --- フロントエンドでの解析 ＆ GASへの保存 ---
     async function analyzeAndRecord() {
       if (!geminiApiKey) {
         showToast("Gemini APIキーを設定してください。", true);
@@ -429,7 +513,7 @@
         return;
       }
       if (!selectedImageBase64) {
-        showToast("料理の写真を撮影または選択してください。", true);
+        showToast("画像を選択またはペーストしてください。", true);
         return;
       }
       if(navigator.vibrate) navigator.vibrate([10, 50, 10]);
@@ -447,23 +531,26 @@
       
       try {
         analyzingTitle.innerText = "Gemini AI 解析中";
-        analyzingDesc.innerText = "料理の写真からカロリーを推測しています...";
+        analyzingDesc.innerText = "画像の種類を判別してデータを推測しています...";
         
         const aiResult = await callGeminiAPI(selectedImageBase64);
         
-        const newIncome = {
-          type: 'income',
-          category: selectedCategory,
-          name: aiResult.name || "不明な料理",
+        const isBodyComp = aiResult.is_body_composition;
+        
+        // AIの判定結果によって、収入（食事）か支出（基礎代謝）かを振り分ける
+        const newRecord = {
+          type: isBodyComp ? 'expense' : 'income',
+          category: isBodyComp ? '基礎代謝' : selectedCategory,
+          name: aiResult.name || (isBodyComp ? "基礎代謝" : "不明な料理"),
           amount: aiResult.amount || 0,
           time: selectedTime,
-          icon: aiResult.icon || "🍽️"
+          icon: aiResult.icon || (isBodyComp ? "⚖️" : "🍽️")
         };
 
         analyzingTitle.innerText = "クラウドへ同期中";
         analyzingDesc.innerText = "データをスプレッドシートに保存しています...";
         
-        const gasPayload = { action: 'add', payload: newIncome };
+        const gasPayload = { action: 'add', payload: newRecord };
 
         const response = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
@@ -474,12 +561,23 @@
 
         const result = await response.json();
         if (result.status === 'success') {
-          // 保存成功時、現在時刻をtimestampとして付与（クライアント側での一時的な表示用）
           const record = result.data;
           record.timestamp = new Date().toISOString();
+          
+          // 実測の基礎代謝が追加された場合、本日の仮データ(id:0)を削除する
+          if (isBodyComp) {
+            const todayStr = new Date().toDateString();
+            transactions = transactions.filter(t => !(t.id === 0 && t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr));
+          }
+          
           transactions.push(record);
           updateUI();
-          showToast('クラウドへの保存が完了しました！');
+          
+          if (isBodyComp) {
+            showToast(`体組成データを検知しました。基礎代謝(${record.amount}kcal)を支出として記録しました！`);
+          } else {
+            showToast('食事データ（収入）の記録が完了しました！');
+          }
         } else {
           throw new Error("GASへの保存に失敗しました");
         }
@@ -492,7 +590,7 @@
     }
 
     // ==========================================
-    // UIとデータ集計ロジック (月次・日次対応)
+    // UIとデータ集計ロジック
     // ==========================================
 
     async function fetchTransactions() {
@@ -501,12 +599,11 @@
         const data = await response.json();
         transactions = data;
         
-        // ※ 本来は毎日の0時に基礎代謝を自動登録するGASトリガーを組むのが理想です。
-        // ここでは便宜上、今日のデータに基礎代謝がなければクライアント側で補完します。
+        // 仮データの補完
         const todayStr = new Date().toDateString();
         const hasTodayBasal = transactions.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
         if (!hasTodayBasal) {
-          transactions.push({ id: 0, type: 'expense', category: '基礎代謝', name: '息してるだけで消費', amount: 1500, time: '00:00', icon: '🫀', timestamp: new Date().toISOString() });
+          transactions.push({ id: 0, type: 'expense', category: '基礎代謝', name: '仮・基礎代謝', amount: 1500, time: '00:00', icon: '🫀', timestamp: new Date().toISOString() });
         }
         
         updateUI();
@@ -544,14 +641,11 @@
       const currentYear = now.getFullYear();
       const currentDate = now.getDate();
 
-      // --- 今月のデータと今日のデータを抽出 ---
       const monthlyTxs = [];
       const todayTxs = [];
       
       transactions.forEach(tx => {
-        // timestampがない場合は便宜上今日として扱う（エラー回避）
         const txDate = tx.timestamp ? new Date(tx.timestamp) : new Date();
-        
         if (txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear) {
           monthlyTxs.push(tx);
           if (txDate.getDate() === currentDate) {
@@ -560,22 +654,18 @@
         }
       });
 
-      // --- 月次計算（メイン残高用） ---
       const monthlyIncome = monthlyTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
       const monthlyExpense = monthlyTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
       const monthlyBalance = monthlyIncome - monthlyExpense;
       const isSurplus = monthlyBalance > 0;
 
-      // --- 日次計算（キャッシュフロー用） ---
       const todayIncome = todayTxs.filter(t => t.type === 'income').reduce((sum, t) => sum + Number(t.amount), 0);
       const todayExpense = todayTxs.filter(t => t.type === 'expense').reduce((sum, t) => sum + Number(t.amount), 0);
 
-      // UIに反映
       document.getElementById('monthly-balance-amount').innerText = (isSurplus ? '+' : '') + monthlyBalance;
       document.getElementById('today-income-amount').innerText = '+' + todayIncome;
       document.getElementById('today-expense-amount').innerText = '-' + todayExpense;
 
-      // メインカードの色変更
       const balanceCard = document.getElementById('balance-card');
       const alertPing = document.getElementById('alert-ping');
       if (isSurplus) {
@@ -586,17 +676,14 @@
         alertPing.classList.add('hidden');
       }
 
-      // 脂肪燃焼プログレスバー（-7200kcalで1kg）
       const fatBurnGoal = -7200;
       let progressPercent = 0;
       if (monthlyBalance < 0) {
-        // 赤字幅が大きいほどバーが伸びる
         progressPercent = Math.min((monthlyBalance / fatBurnGoal) * 100, 100);
       }
       document.getElementById('fat-burn-bar').style.width = `${progressPercent}%`;
       document.getElementById('fat-burn-progress-text').innerText = `${monthlyBalance} / ${fatBurnGoal} kcal (脂肪換算: ${(monthlyBalance/7200).toFixed(2)} kg)`;
 
-      // アドバイス更新
       const advice = getAdvice(monthlyBalance, isSurplus);
       const adviceCard = document.getElementById('advice-card');
       adviceCard.className = `rounded-[28px] p-5 bg-gradient-to-r ${advice.gradient} text-white shadow-lg flex gap-4 items-start transform transition-all duration-500`;
@@ -605,7 +692,6 @@
       document.getElementById('advice-role').innerText = advice.role;
       document.getElementById('advice-text').innerText = advice.text;
 
-      // リストの生成（降順ソート）
       const sortedTodayTxs = [...todayTxs].sort((a, b) => b.time.localeCompare(a.time));
       const sortedMonthlyTxs = [...monthlyTxs].sort((a, b) => {
         const dateA = a.timestamp ? new Date(a.timestamp) : new Date();
@@ -614,7 +700,7 @@
       });
 
       document.getElementById('transaction-list-today').innerHTML = generateTxHtml(sortedTodayTxs);
-      document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedMonthlyTxs, true); // 月次明細は日付も表示
+      document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedMonthlyTxs, true);
       
       lucide.createIcons();
     }
@@ -669,11 +755,7 @@
     function openModal() {
       if(navigator.vibrate) navigator.vibrate(10);
       
-      document.getElementById('preview-img').src = "";
-      document.getElementById('preview-img').classList.add('hidden');
-      document.getElementById('camera-placeholder').classList.remove('hidden');
-      selectedImageBase64 = null;
-      document.getElementById('image-input').value = "";
+      clearImage();
       
       const now = new Date();
       document.getElementById('meal-time').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;

@@ -51,7 +51,13 @@
       <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
         <i data-lucide="scale" class="w-3.5 h-3.5"></i> Body Bank
       </p>
-      <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
+      <!-- ★ リロード（手動同期）ボタンを追加 ★ -->
+      <div class="flex items-center gap-3">
+        <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
+        <button onclick="fetchTransactions()" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-white"></i>
+        </button>
+      </div>
     </div>
     <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
       <i data-lucide="user" class="text-white w-5 h-5"></i>
@@ -261,6 +267,7 @@
       </div>
 
       <div id="input-ui" class="space-y-4 flex-1 overflow-y-auto pb-4">
+        
         <div class="p-4 border-2 border-gray-100 bg-gray-50 rounded-[20px] flex items-center gap-3 text-gray-600 mb-4">
           <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm border border-gray-100">
             <i data-lucide="scan-line" class="w-5 h-5 text-gray-700"></i>
@@ -271,7 +278,6 @@
           </div>
         </div>
 
-        <!-- ★ 日付と時間の入力エリア ★ -->
         <div class="flex gap-3 mb-2">
           <div class="flex-1 min-w-0">
             <label class="block text-[11px] font-extrabold text-gray-400 uppercase tracking-wider mb-1.5 pl-1">日付</label>
@@ -340,7 +346,6 @@
     let selectedImageBase64 = null;
     let transactions = [];
 
-    // --- トースト通知機能 ---
     function showToast(message, isError = false) {
       const toast = document.getElementById('toast');
       const msgEl = document.getElementById('toast-message');
@@ -380,6 +385,8 @@
       document.getElementById('api-key-input').value = geminiApiKey;
       const now = new Date();
       document.getElementById('current-month-label').innerText = `${now.getMonth() + 1}月の累計収支`;
+      
+      // 初回通信の前にUIをローディング表示にしても良いですが、今回はそのまま取得
       fetchTransactions();
     });
 
@@ -468,7 +475,6 @@
       document.getElementById('camera-placeholder').classList.remove('hidden');
     }
 
-    // --- Gemini API ---
     async function callGeminiAPI(base64Image) {
       const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
       const prompt = `この画像を解析してください。
@@ -508,7 +514,6 @@
       return JSON.parse(data.candidates[0].content.parts[0].text);
     }
 
-    // --- フロントエンドでの解析 ＆ GASへの保存 ---
     async function analyzeAndRecord() {
       if (!geminiApiKey) {
         showToast("Gemini APIキーを設定してください。", true);
@@ -531,13 +536,10 @@
       const selectedDate = document.getElementById('meal-date').value;
       const selectedTime = document.getElementById('meal-time').value;
 
-      // 日付と時間からタイムスタンプを生成
       let customTimestamp = new Date().toISOString();
       if (selectedDate && selectedTime) {
         const d = new Date(`${selectedDate}T${selectedTime}:00`);
-        if (!isNaN(d.getTime())) {
-          customTimestamp = d.toISOString();
-        }
+        if (!isNaN(d.getTime())) customTimestamp = d.toISOString();
       }
 
       inputUI.classList.add('hidden');
@@ -557,7 +559,7 @@
           amount: aiResult.amount || 0,
           time: selectedTime,
           icon: aiResult.icon || (isBodyComp ? "⚖️" : "🍽️"),
-          timestamp: customTimestamp // ★指定した日時を送信★
+          timestamp: customTimestamp
         };
 
         analyzingTitle.innerText = "クラウドへ同期中";
@@ -575,24 +577,24 @@
         const result = await response.json();
         if (result.status === 'success') {
           const record = result.data;
+          record.timestamp = customTimestamp; // クライアント側で即時反映用
           
-          // GAS側で timestamp を優先させるようにコード修正されていれば、
-          // 返ってくる record.timestamp は customTimestamp と一致するはずですが、
-          // 念のためフロントエンドでも上書きしておきます。
-          record.timestamp = customTimestamp;
-          
+          const targetDateStr = new Date(customTimestamp).toDateString();
+
+          // ★追加ロジック1: 体組成データ(基礎代謝)の場合、同日の古い基礎代謝を削除
           if (isBodyComp) {
-            const todayStr = new Date(customTimestamp).toDateString();
-            transactions = transactions.filter(t => !(t.id === 0 && t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr));
+            transactions = transactions.filter(t => !(t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === targetDateStr));
           }
           
           transactions.push(record);
+          
+          // 更新の前に一旦配列を日付できれいに整理しておく（念のため）
           updateUI();
           
           if (isBodyComp) {
-            showToast(`基礎代謝(${record.amount}kcal)を ${selectedDate} の支出として記録しました！`);
+            showToast(`基礎代謝(${record.amount}kcal)を支出として上書き記録しました！`);
           } else {
-            showToast(`食事データを ${selectedDate} の収入として記録しました！`);
+            showToast(`食事データを収入として記録しました！`);
           }
         } else {
           throw new Error("GASへの保存に失敗しました");
@@ -609,12 +611,52 @@
     // UIとデータ集計ロジック
     // ==========================================
 
-    async function fetchTransactions() {
+    // ★追加ロジック2: 手動リロード(同期)関数
+    async function fetchTransactions(showLoadingToast = false) {
+      if(showLoadingToast) showToast("最新のデータを取得しています...");
+      if(navigator.vibrate) navigator.vibrate(10);
+      
+      const icon = document.querySelector('i[data-lucide="refresh-cw"]');
+      if(icon) icon.classList.add('animate-[spin_1s_linear_infinite]');
+      
       try {
         const response = await fetch(GAS_WEB_APP_URL);
         const data = await response.json();
-        transactions = data;
         
+        // --- ★追加ロジック3: ヘルスケアデータの重複排除（1日1件） ---
+        // スプレッドシートから全データ取得後、「ヘルスケア連携」カテゴリについて、
+        // 同じ日付のものが複数ある場合は、ID（またはタイムスタンプ）が最新のものだけを残す処理
+        const uniqueTransactions = [];
+        const healthCareMap = new Map(); // key: 日付文字列, value: 最新のトランザクション
+
+        // まず、データを1件ずつ確認
+        data.forEach(tx => {
+          if (tx.category === 'ヘルスケア連携') {
+            const dateStr = new Date(tx.timestamp).toDateString();
+            // 同じ日付のものが既にMapにあり、今回のtxの方が新しければ（idが大きければ）上書き
+            if (!healthCareMap.has(dateStr) || healthCareMap.get(dateStr).id < tx.id) {
+              healthCareMap.set(dateStr, tx);
+            }
+          }
+        });
+
+        // 重複を排除したデータを最終的な配列に組み直す
+        data.forEach(tx => {
+          if (tx.category === 'ヘルスケア連携') {
+            const dateStr = new Date(tx.timestamp).toDateString();
+            // Mapに保存されている「最新のもの」と一致する時だけ追加
+            if (healthCareMap.get(dateStr).id === tx.id) {
+              uniqueTransactions.push(tx);
+            }
+          } else {
+             // ヘルスケア連携以外（食事など）はそのまま追加
+             uniqueTransactions.push(tx);
+          }
+        });
+
+        transactions = uniqueTransactions;
+
+        // 仮データの補完 (今日)
         const todayStr = new Date().toDateString();
         const hasTodayBasal = transactions.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
         if (!hasTodayBasal) {
@@ -622,9 +664,12 @@
         }
         
         updateUI();
+        if(showLoadingToast) showToast("同期が完了しました！");
       } catch (error) {
         console.error("データの取得に失敗:", error);
         showToast("データの取得に失敗しました", true);
+      } finally {
+        if(icon) icon.classList.remove('animate-[spin_1s_linear_infinite]');
       }
     }
 
@@ -716,7 +761,7 @@
       const sortedMonthlyTxs = [...monthlyTxs].sort((a, b) => {
         const dateA = a.timestamp ? new Date(a.timestamp) : new Date();
         const dateB = b.timestamp ? new Date(b.timestamp) : new Date();
-        return dateB - dateA;
+        return dateB - dateA; // 最新が一番上
       });
 
       document.getElementById('transaction-list-today').innerHTML = generateTxHtml(sortedTodayTxs);
@@ -779,7 +824,6 @@
       
       const now = new Date();
       
-      // ★ デフォルトで現在の日付と時間をセット ★
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
@@ -817,6 +861,5 @@
   </script>
 </body>
 </html>
-
 
 

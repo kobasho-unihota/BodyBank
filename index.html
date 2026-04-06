@@ -675,37 +675,34 @@
         
         const gasPayload = { action: 'add', payload: newRecord };
 
-        const response = await fetch(GAS_WEB_APP_URL, {
+        // ★修正: iOS/PWAのCORSパースエラーによるフリーズを防ぐため、no-corsモードで送信
+        await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
-          redirect: 'follow', 
+          mode: 'no-cors', 
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify(gasPayload)
         });
 
-        const result = await response.json();
-        if (result.status === 'success') {
-          const record = result.data;
-          // GASのコードで payload.timestamp が優先されていれば一致しますが、念のため上書き
-          record.timestamp = customTimestamp; 
-          
-          const isBodyComp = (selectedCategory === '基礎代謝');
-          if (isBodyComp) {
-            const targetDateStr = new Date(customTimestamp).toDateString();
-            transactions = transactions.filter(t => !(t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === targetDateStr));
-          }
-          
-          transactions.push(record);
-          updateUI();
-          
-          showToast(`記録を保存しました！`);
-          closeModal(); // 保存成功時のみ閉じる
-        } else {
-          throw new Error("GASへの保存に失敗しました");
+        // no-cors の場合、レスポンスの取得(jsonパース)はできないため、
+        // 通信が完了した時点で成功とみなし、ローカルのデータでUIを更新する
+        const record = { ...newRecord, id: Date.now() };
+        
+        const isBodyComp = (selectedCategory === '基礎代謝');
+        if (isBodyComp) {
+          const targetDateStr = new Date(customTimestamp).toDateString();
+          transactions = transactions.filter(t => !(t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === targetDateStr));
         }
+        
+        transactions.push(record);
+        updateUI();
+        
+        showToast(`記録を保存しました！`);
+        closeModal(); 
+        
       } catch (error) {
         console.error("エラー:", error);
         showToast("保存処理に失敗しました", true);
-        analyzingUI.classList.add('hidden'); // エラー時はモーダルを開いたままにする
+        analyzingUI.classList.add('hidden'); 
       }
     }
 

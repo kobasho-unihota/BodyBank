@@ -57,13 +57,14 @@
       </p>
       <div class="flex items-center gap-3">
         <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
-        <button onclick="fetchTransactions(true)" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20">
-          <i data-lucide="refresh-cw" class="w-4 h-4 text-white"></i>
+        <!-- ★修正: アイコンの pointer-events-none と z-20 を追加してタップ不良を解消 -->
+        <button onclick="fetchTransactions(true)" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20 relative z-20">
+          <i data-lucide="refresh-cw" class="w-4 h-4 text-white pointer-events-none"></i>
         </button>
       </div>
     </div>
     <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
-      <i data-lucide="user" class="text-white w-5 h-5"></i>
+      <i data-lucide="user" class="text-white w-5 h-5 pointer-events-none"></i>
     </div>
   </header>
 
@@ -147,7 +148,7 @@
           <h2 class="text-lg font-extrabold tracking-tight text-gray-900">直近7日間の純収支</h2>
         </div>
         
-        <div id="activity-chart-container" class="h-40 flex items-end justify-between gap-1.5 relative">
+        <div id="activity-chart-container" class="h-40 flex items-end justify-between gap-1.5 relative px-2">
           <!-- JSで動的に生成 -->
         </div>
 
@@ -160,7 +161,7 @@
       <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
         <h2 class="text-lg font-extrabold tracking-tight text-gray-900 mb-4">AI 財務レポート</h2>
         <button id="ai-report-btn" onclick="generateAIReport()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-[24px] font-extrabold text-sm flex items-center justify-center gap-2 btn-press shadow-xl shadow-blue-500/20">
-          <i data-lucide="sparkles" class="w-5 h-5"></i> ✨ 専属アナリストに分析を依頼
+          <i data-lucide="sparkles" class="w-5 h-5 pointer-events-none"></i> ✨ 専属アナリストに分析を依頼
         </button>
         <div id="ai-report-container" class="hidden mt-5 pt-5 border-t border-gray-200/60">
           <div class="flex items-center gap-2 mb-3">
@@ -239,27 +240,27 @@
   <!-- ボトムナビゲーション -->
   <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-200/50 px-6 py-2 pb-safe z-30 flex justify-between items-center shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
     <button id="nav-wallet" onclick="switchTab('wallet')" class="flex flex-col items-center gap-1 w-16 text-gray-900 btn-press">
-      <i data-lucide="wallet" class="w-6 h-6" id="icon-wallet" stroke-width="2.5"></i>
-      <span class="text-[10px] font-bold">口座</span>
+      <i data-lucide="wallet" class="w-6 h-6 pointer-events-none" id="icon-wallet" stroke-width="2.5"></i>
+      <span class="text-[10px] font-bold pointer-events-none">口座</span>
     </button>
     <button id="nav-activity" onclick="switchTab('activity')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="activity" class="w-6 h-6" id="icon-activity" stroke-width="2"></i>
-      <span class="text-[10px] font-bold">分析</span>
+      <i data-lucide="activity" class="w-6 h-6 pointer-events-none" id="icon-activity" stroke-width="2"></i>
+      <span class="text-[10px] font-bold pointer-events-none">分析</span>
     </button>
-    <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-gray-900 rounded-[22px] flex items-center justify-center text-white shadow-xl shadow-gray-900/20 border-4 border-white btn-press">
-      <i data-lucide="camera" class="w-7 h-7" stroke-width="2.5"></i>
+    <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-gray-900 rounded-[22px] flex items-center justify-center text-white shadow-xl shadow-gray-900/20 border-4 border-white btn-press z-20">
+      <i data-lucide="camera" class="w-7 h-7 pointer-events-none" stroke-width="2.5"></i>
     </button>
     <button id="nav-calendar" onclick="switchTab('calendar')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="calendar" class="w-6 h-6" id="icon-calendar" stroke-width="2"></i>
-      <span class="text-[10px] font-bold">明細</span>
+      <i data-lucide="calendar" class="w-6 h-6 pointer-events-none" id="icon-calendar" stroke-width="2"></i>
+      <span class="text-[10px] font-bold pointer-events-none">明細</span>
     </button>
     <button id="nav-user" onclick="switchTab('user')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="user" class="w-6 h-6" id="icon-user" stroke-width="2"></i>
-      <span class="text-[10px] font-bold">設定</span>
+      <i data-lucide="user" class="w-6 h-6 pointer-events-none" id="icon-user" stroke-width="2"></i>
+      <span class="text-[10px] font-bold pointer-events-none">設定</span>
     </button>
   </div>
 
-  <!-- ★大幅改修★ モーダル（データ記録・修正画面） -->
+  <!-- モーダル（データ記録・修正画面） -->
   <div id="modal" class="fixed inset-0 z-50 flex items-end justify-center px-0 pb-0 hidden">
     <div id="modal-overlay" onclick="closeModal()" class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
     <div id="modal-content" class="bg-white w-full rounded-t-[40px] p-6 relative shadow-2xl h-[85vh] flex flex-col border-t border-white/50 transform translate-y-full transition-transform duration-400 ease-out z-10">
@@ -267,7 +268,7 @@
       <div class="flex justify-between items-center mb-4">
         <h3 class="text-2xl font-extrabold tracking-tight">取引の記帳</h3>
         <button onclick="closeModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 btn-press">
-          <i data-lucide="x" class="w-4 h-4" stroke-width="3"></i>
+          <i data-lucide="x" class="w-4 h-4 pointer-events-none" stroke-width="3"></i>
         </button>
       </div>
 
@@ -288,19 +289,18 @@
       <!-- 入力・編集フォーム -->
       <div id="input-ui" class="space-y-5 flex-1 overflow-y-auto pb-6 px-1">
         
-        <!-- STEP1: AI推測エリア（画像 or テキスト） -->
+        <!-- STEP1: AI推測エリア -->
         <div class="bg-blue-50/50 border border-blue-100 rounded-[20px] p-4 shadow-sm">
           <div class="flex items-center gap-2 mb-3">
             <i data-lucide="sparkles" class="w-4 h-4 text-blue-500"></i>
             <span class="font-extrabold text-[11px] text-blue-700 tracking-wider">STEP 1. AIでデータを自動入力</span>
           </div>
 
-          <!-- 画像エリア -->
           <div class="w-full aspect-video bg-white rounded-[16px] border-2 border-dashed border-blue-200 shadow-sm relative overflow-hidden mb-3">
             <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center gap-6 z-10">
               <label for="image-input" class="flex flex-col items-center cursor-pointer btn-press">
                 <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-1 text-blue-500 shadow-sm border border-blue-100">
-                  <i data-lucide="camera" class="w-5 h-5"></i>
+                  <i data-lucide="camera" class="w-5 h-5 pointer-events-none"></i>
                 </div>
                 <span class="text-[10px] font-extrabold text-blue-600">写真から</span>
                 <input type="file" id="image-input" accept="image/*" class="hidden">
@@ -308,7 +308,7 @@
 
               <button onclick="pasteFromClipboard()" class="flex flex-col items-center cursor-pointer btn-press">
                 <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-1 text-blue-500 shadow-sm border border-blue-100">
-                  <i data-lucide="clipboard-paste" class="w-5 h-5"></i>
+                  <i data-lucide="clipboard-paste" class="w-5 h-5 pointer-events-none"></i>
                 </div>
                 <span class="text-[10px] font-extrabold text-blue-600">ペースト</span>
               </button>
@@ -316,11 +316,10 @@
 
             <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none z-0" />
             <button id="clear-img-btn" onclick="clearImage(event)" class="absolute top-2 right-2 w-7 h-7 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hidden z-20 btn-press">
-              <i data-lucide="x" class="w-3 h-3"></i>
+              <i data-lucide="x" class="w-3 h-3 pointer-events-none"></i>
             </button>
           </div>
 
-          <!-- 料理名（テキスト）と推測ボタン -->
           <div class="flex gap-2">
             <input type="text" id="ai-hint-name" placeholder="料理名で推測 (例: 卵かけご飯)" class="flex-1 min-w-0 bg-white border border-blue-100 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 outline-none shadow-inner appearance-none focus:border-blue-300">
             <button onclick="runAIAnalysis()" class="bg-blue-600 text-white px-4 rounded-xl font-extrabold text-xs btn-press shadow-md shadow-blue-600/20 active:bg-blue-700 transition-colors">
@@ -396,7 +395,7 @@
         </div>
 
         <button onclick="saveRecordToGAS()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-2 shadow-xl shadow-gray-900/20 active:bg-gray-800 transition-colors">
-          <i data-lucide="save" class="w-5 h-5"></i> この内容で保存する
+          <i data-lucide="save" class="w-5 h-5 pointer-events-none"></i> この内容で保存する
         </button>
       </div>
     </div>
@@ -466,7 +465,6 @@
       }
     }
 
-    // --- 画像セット機能 ---
     function setImageToPreview(base64Data, dataUrl) {
       selectedImageBase64 = base64Data;
       document.getElementById('preview-img').src = dataUrl;
@@ -514,7 +512,6 @@
 
     document.addEventListener('paste', (e) => {
       if (document.getElementById('modal').classList.contains('hidden')) return;
-      // INPUTタグ等に入力中の場合は画像ペーストをブロックしないが、画像データを優先して取得
       if (e.target.tagName === 'INPUT' && e.target.type === 'text') return; 
 
       const items = e.clipboardData.items;
@@ -614,7 +611,6 @@
         const data = await res.json();
         const aiResult = JSON.parse(data.candidates[0].content.parts[0].text);
 
-        // 結果をSTEP2（手動修正エリア）に反映
         const isBodyComp = aiResult.is_body_composition;
         document.getElementById('record-name').value = aiResult.name || (isBodyComp ? "基礎代謝" : "不明な料理");
         document.getElementById('record-amount').value = aiResult.amount || 0;
@@ -631,6 +627,27 @@
         showToast("解析に失敗しました", true);
       } finally {
         analyzingUI.classList.add('hidden');
+      }
+    }
+
+    // --- 削除機能（フロントエンド） ---
+    async function deleteRecord(event, id) {
+      event.stopPropagation(); 
+      if(navigator.vibrate) navigator.vibrate(10);
+      
+      transactions = transactions.filter(t => String(t.id) !== String(id));
+      updateUI();
+      showToast("記録を削除しました");
+
+      try {
+        await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'no-cors',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ action: 'delete', payload: { id: id } })
+        });
+      } catch (error) {
+        console.error("削除通信エラー:", error);
       }
     }
 
@@ -662,8 +679,11 @@
         if (!isNaN(d.getTime())) customTimestamp = d.toISOString();
       }
       
+      const newId = Date.now() + Math.floor(Math.random() * 1000);
+      
       try {
         const newRecord = {
+          id: newId,
           type: selectedType,
           category: selectedCategory,
           name: name,
@@ -675,7 +695,6 @@
         
         const gasPayload = { action: 'add', payload: newRecord };
 
-        // ★修正: iOS/PWAのCORSパースエラーによるフリーズを防ぐため、no-corsモードで送信
         await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
           mode: 'no-cors', 
@@ -683,17 +702,13 @@
           body: JSON.stringify(gasPayload)
         });
 
-        // no-cors の場合、レスポンスの取得(jsonパース)はできないため、
-        // 通信が完了した時点で成功とみなし、ローカルのデータでUIを更新する
-        const record = { ...newRecord, id: Date.now() };
-        
         const isBodyComp = (selectedCategory === '基礎代謝');
         if (isBodyComp) {
           const targetDateStr = new Date(customTimestamp).toDateString();
           transactions = transactions.filter(t => !(t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === targetDateStr));
         }
         
-        transactions.push(record);
+        transactions.push(newRecord);
         updateUI();
         
         showToast(`記録を保存しました！`);
@@ -718,7 +733,8 @@
       if(icon) icon.classList.add('animate-[spin_1s_linear_infinite]');
       
       try {
-        const fetchUrl = GAS_WEB_APP_URL + "?t=" + new Date().getTime();
+        // ★修正: キャッシュ回避のためのパラメータ付与を強化
+        const fetchUrl = GAS_WEB_APP_URL + (GAS_WEB_APP_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
         const response = await fetch(fetchUrl, { cache: 'no-store' });
         const data = await response.json();
         
@@ -897,7 +913,8 @@
         本日の支出(代謝+運動): ${todayExp} kcal
         `;
 
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiApiKey}`;
+        // ★修正: プレビューモデルではなく、安定している通常のFlashモデルを使用するように変更
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
         const payload = {
           contents: [{ parts: [{ text: prompt }] }]
         };
@@ -985,23 +1002,32 @@
           ? `<span class="text-[10px] font-extrabold text-gray-900 bg-gray-200 px-2 py-0.5 rounded-full z-10 pointer-events-none">${dayName}</span>`
           : `<span class="text-[10px] font-bold text-gray-400 z-10 pointer-events-none">${dayName}</span>`;
 
+        // ★修正: absolute配置と-translate-x-1/2を使って、文字が長くても隣にはみ出さないように配置
         let barHtml = '';
         if (isSurplus) {
-          barHtml = `<div class="w-full bg-rose-400 rounded-t-md bar-grow ${b.isToday ? 'shadow-lg shadow-rose-500/30' : ''} z-10 pointer-events-none" style="height: ${heightPx}px;"></div>`;
+          barHtml = `
+            <div class="w-full bg-rose-400 rounded-t-md bar-grow ${b.isToday ? 'shadow-lg shadow-rose-500/30' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
+              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20 pointer-events-none">
+                <span class="text-[8px] font-extrabold text-rose-500 bg-white/90 px-1 py-0.5 rounded-md leading-none shadow-sm border border-rose-100 whitespace-nowrap block">${displayBalance}</span>
+              </div>
+            </div>`;
         } else {
-          barHtml = `<div class="w-full bg-emerald-400 rounded-b-md bar-grow ${b.isToday ? 'shadow-lg shadow-emerald-500/30' : ''} z-10 pointer-events-none" style="height: ${heightPx}px;"></div>`;
+          barHtml = `
+            <div class="w-full bg-emerald-400 rounded-b-md bar-grow ${b.isToday ? 'shadow-lg shadow-emerald-500/30' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
+              <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-20 pointer-events-none">
+                <span class="text-[8px] font-extrabold text-emerald-500 bg-white/90 px-1 py-0.5 rounded-md leading-none shadow-sm border border-emerald-100 whitespace-nowrap block">${displayBalance}</span>
+              </div>
+            </div>`;
         }
-
-        const valueHtml = `<span class="text-[8px] font-extrabold ${isSurplus ? 'text-rose-500 mb-1' : 'text-emerald-500 mt-1'} bg-white/90 px-1 py-0.5 rounded-md leading-none shadow-sm border border-gray-100 z-20 whitespace-nowrap pointer-events-none">${displayBalance}</span>`;
 
         html += `
           <button type="button" data-msg="${displayDate}の純収支: ${displayBalance}" data-surplus="${isSurplus}" class="w-full h-full flex flex-col justify-end items-center z-20 cursor-pointer active:opacity-50 transition-opacity outline-none appearance-none bg-black/0 p-0 m-0 border-none relative">
             <div class="flex-1 flex flex-col justify-end items-center w-full pb-[1px] pointer-events-none">
-               ${isSurplus ? `${valueHtml}${barHtml}` : ''}
+               ${isSurplus ? barHtml : ''}
             </div>
             
             <div class="flex-1 flex flex-col justify-start items-center w-full pt-[1px] pointer-events-none">
-               ${!isSurplus ? `${barHtml}${valueHtml}` : ''}
+               ${!isSurplus ? barHtml : ''}
             </div>
             
             <div class="h-6 flex items-end justify-center w-full pointer-events-none">
@@ -1032,8 +1058,14 @@
           dateLabel = `<span class="text-[10px] font-bold text-gray-400 mr-2">${d.getMonth()+1}/${d.getDate()}</span>`;
         }
         
+        const deleteBtnHtml = tx.id === 0 ? '<div class="w-8"></div>' : `
+          <button onclick="deleteRecord(event, '${tx.id}')" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
+            <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
+          </button>
+        `;
+
         return `
-        <div class="p-4 flex items-center gap-4 active:bg-gray-100 transition-colors cursor-pointer">
+        <div class="p-4 flex items-center gap-3 active:bg-gray-100 transition-colors cursor-pointer">
           <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border ${tx.type === 'income' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}">
             ${tx.icon}
           </div>
@@ -1051,6 +1083,7 @@
             </div>
             <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">kcal</span>
           </div>
+          ${deleteBtnHtml}
         </div>
       `}).join('');
     }
@@ -1076,7 +1109,6 @@
       
       const now = new Date();
       
-      // STEP2の初期化
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');
@@ -1119,5 +1151,3 @@
   </script>
 </body>
 </html>
-
-

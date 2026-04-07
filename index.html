@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <!-- モダンUIに合わせてステータスバーを明るく変更 -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Body Bank</title>
 
   <script src="https://cdn.tailwindcss.com"></script>
@@ -39,10 +40,11 @@
     .top-safe { top: env(safe-area-inset-top, 1rem); }
   </style>
 </head>
-<body class="bg-gray-50 font-sans text-gray-900 pb-32 relative overflow-x-hidden min-h-screen">
+<body class="bg-slate-50 font-sans text-slate-900 pb-32 relative overflow-x-hidden min-h-screen selection:bg-blue-100">
 
+  <!-- トースト通知 -->
   <div id="toast" class="fixed top-safe mt-4 left-4 right-4 z-[100] transform -translate-y-[150%] opacity-0 transition-all duration-300 pointer-events-none flex justify-center">
-    <div class="bg-gray-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
+    <div class="bg-slate-900 text-white px-6 py-3.5 rounded-2xl shadow-xl flex items-center gap-3">
       <div id="toast-icon-container">
         <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
       </div>
@@ -50,182 +52,191 @@
     </div>
   </div>
 
-  <div class="fixed top-0 left-0 right-0 h-80 bg-gradient-to-b from-gray-900 to-gray-800 rounded-b-[40px] shadow-lg z-0 pointer-events-none"></div>
-
-  <header class="px-6 pt-16 pt-safe pb-4 flex justify-between items-center relative z-10 text-white">
+  <!-- クリーンなヘッダー -->
+  <header class="px-6 pt-16 pt-safe pb-6 flex justify-between items-end relative z-10">
     <div>
-      <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 flex items-center gap-1.5">
+      <p class="text-[11px] font-extrabold text-blue-600 uppercase tracking-widest mb-1.5 flex items-center gap-1.5">
         <i data-lucide="scale" class="w-3.5 h-3.5"></i> Body Bank
       </p>
-      <div class="flex items-center gap-3">
-        <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
-        <button id="refresh-btn" onclick="fetchTransactions(true)" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20 relative z-20">
-          <i data-lucide="refresh-cw" class="w-4 h-4 text-white pointer-events-none"></i>
-        </button>
-      </div>
+      <h1 id="header-title" class="text-3xl font-extrabold tracking-tight text-slate-900 transition-all">体内エネルギー収支</h1>
     </div>
-    <div class="w-10 h-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner">
-      <i data-lucide="user" class="text-white w-5 h-5 pointer-events-none"></i>
+    <div class="flex items-center gap-3 pb-1">
+      <button id="refresh-btn" onclick="fetchTransactions(true)" class="w-10 h-10 rounded-full bg-white flex items-center justify-center border border-slate-200 shadow-sm btn-press active:bg-slate-50 relative z-20">
+        <i data-lucide="refresh-cw" class="w-4 h-4 text-slate-600 pointer-events-none"></i>
+      </button>
+      <div class="w-10 h-10 rounded-full bg-slate-900 flex items-center justify-center shadow-md">
+        <i data-lucide="user" class="text-white w-5 h-5 pointer-events-none"></i>
+      </div>
     </div>
   </header>
 
-  <main class="px-4 mt-2 relative z-10">
+  <main class="px-4 space-y-6 relative z-10">
     
     <!-- ビュー1：口座 (Wallet) -->
-    <div id="view-wallet" class="space-y-5 animate-tab">
-      <div id="balance-card" class="p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20">
+    <div id="view-wallet" class="space-y-6 animate-tab">
+      
+      <!-- メイン残高カード -->
+      <div id="balance-card" class="p-7 rounded-[32px] text-white shadow-[0_20px_40px_-15px_rgba(16,185,129,0.4)] transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-500">
         <div class="absolute -right-10 -top-10 opacity-10 mix-blend-overlay">
-          <i data-lucide="trending-down" class="w-40 h-40"></i>
+          <i data-lucide="trending-down" class="w-48 h-48"></i>
         </div>
         <div class="flex justify-between items-start relative z-10">
           <div>
-            <p class="text-sm font-medium text-white/80 mb-1 flex items-center gap-2">
+            <p class="text-sm font-medium text-white/90 mb-1 flex items-center gap-2">
               <span id="current-month-label">今月の累計収支</span>
               <span id="alert-ping" class="hidden flex h-2 w-2 relative">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
               </span>
             </p>
             <div class="flex items-baseline gap-1 mt-1">
-              <span id="monthly-balance-amount" class="text-6xl font-extrabold tracking-tighter tabular-nums transition-all duration-500">-</span>
-              <span class="text-lg font-bold text-white/80">kcal</span>
+              <span id="monthly-balance-amount" class="text-[4rem] leading-none font-extrabold tracking-tighter tabular-nums transition-all duration-500 drop-shadow-sm">-</span>
+              <span class="text-lg font-bold text-white/90">kcal</span>
             </div>
-            <div class="mt-3">
-              <div class="flex justify-between text-[10px] font-bold text-white/80 mb-1">
+            <div class="mt-4 bg-black/10 rounded-xl p-3 backdrop-blur-sm">
+              <div class="flex justify-between text-[11px] font-bold text-white mb-1.5">
                 <span>脂肪燃焼まで</span>
                 <span id="fat-burn-progress-text">0 / -7200 kcal</span>
               </div>
-              <div class="h-1.5 bg-white/20 rounded-full overflow-hidden">
-                <div id="fat-burn-bar" class="h-full bg-white rounded-full transition-all duration-1000" style="width: 0%"></div>
+              <div class="h-2 bg-black/20 rounded-full overflow-hidden">
+                <div id="fat-burn-bar" class="h-full bg-white rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,255,255,0.5)]" style="width: 0%"></div>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="mt-6 pt-4 border-t border-white/20 grid grid-cols-2 gap-4 relative z-10">
+        <div class="mt-6 pt-5 border-t border-white/20 grid grid-cols-2 gap-4 relative z-10">
           <div class="flex flex-col">
-            <div class="flex items-center gap-1.5 text-[11px] text-white/80 mb-0.5">
-              <i data-lucide="trending-up" class="w-3 h-3 text-orange-300"></i>
+            <div class="flex items-center gap-1.5 text-[11px] text-white/90 mb-1">
+              <i data-lucide="trending-up" class="w-3.5 h-3.5 text-white"></i>
               <span class="font-bold">本日の収入(食事)</span>
             </div>
-            <div id="today-income-amount" class="text-xl font-extrabold tracking-tight">+0</div>
+            <div id="today-income-amount" class="text-2xl font-extrabold tracking-tight">+0</div>
           </div>
           <div class="flex flex-col">
-            <div class="flex items-center gap-1.5 text-[11px] text-white/80 mb-0.5">
-              <i data-lucide="trending-down" class="w-3 h-3 text-blue-300"></i>
+            <div class="flex items-center gap-1.5 text-[11px] text-white/90 mb-1">
+              <i data-lucide="trending-down" class="w-3.5 h-3.5 text-white/70"></i>
               <span class="font-bold">本日の支出(代謝+運動)</span>
             </div>
-            <div id="today-expense-amount" class="text-xl font-extrabold tracking-tight text-blue-100">-0</div>
+            <div id="today-expense-amount" class="text-2xl font-extrabold tracking-tight text-white/70">-0</div>
           </div>
         </div>
       </div>
 
-      <div id="advice-card" class="rounded-[28px] p-5 bg-gradient-to-r text-white shadow-lg flex gap-4 items-start transform transition-all duration-500">
-        <div class="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shrink-0 text-3xl shadow-inner border border-white/30" id="advice-icon">⌛</div>
-        <div>
-          <div class="flex items-baseline gap-2 mb-1">
-            <span id="advice-name" class="font-extrabold text-base tracking-tight">分析エンジン</span>
-            <span id="advice-role" class="text-[10px] font-bold bg-white/20 px-2.5 py-0.5 rounded-full">データ同期中</span>
+      <!-- アドバイスカード -->
+      <div id="advice-card" class="rounded-[28px] p-5 bg-white border border-slate-200/60 shadow-sm flex gap-4 items-start transition-all duration-500">
+        <div id="advice-icon-bg" class="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-3xl bg-slate-50 border border-slate-100">
+          <span id="advice-icon">⌛</span>
+        </div>
+        <div class="flex-1">
+          <div class="flex items-baseline gap-2 mb-1.5">
+            <span id="advice-name" class="font-extrabold text-base tracking-tight text-slate-900">分析エンジン</span>
+            <span id="advice-role" class="text-[10px] font-bold bg-slate-100 text-slate-600 px-2 py-0.5 rounded-md">同期中</span>
           </div>
-          <p id="advice-text" class="text-sm font-medium leading-relaxed text-white/95">クラウドからデータを取得しています...</p>
+          <p id="advice-text" class="text-sm font-medium leading-relaxed text-slate-600">データを取得しています...</p>
         </div>
       </div>
 
+      <!-- 本日の取引 -->
       <div class="pt-2">
         <div class="flex justify-between items-end px-2 mb-4">
-          <h2 class="text-2xl font-extrabold tracking-tight text-gray-900">本日の取引</h2>
-          <button onclick="switchTab('calendar')" class="text-xs font-bold text-blue-600 flex items-center btn-press">明細へ <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i></button>
+          <h2 class="text-xl font-extrabold tracking-tight text-slate-900">本日の取引</h2>
+          <button onclick="switchTab('calendar')" class="text-[11px] font-extrabold text-blue-600 flex items-center gap-0.5 btn-press">
+            明細へ <i data-lucide="chevron-right" class="w-4 h-4"></i>
+          </button>
         </div>
-        <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[28px] overflow-hidden">
-          <div id="transaction-list-today" class="divide-y divide-gray-100"></div>
+        <div class="bg-white border border-slate-200/60 shadow-sm rounded-[28px] overflow-hidden">
+          <div id="transaction-list-today" class="divide-y divide-slate-100"></div>
         </div>
       </div>
     </div>
 
     <!-- ビュー2：分析 (Activity) -->
-    <div id="view-activity" class="space-y-5 hidden animate-tab">
-      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
+    <div id="view-activity" class="space-y-6 hidden animate-tab">
+      <!-- グラフカード -->
+      <div class="bg-white border border-slate-200/60 shadow-sm rounded-[32px] p-6">
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-lg font-extrabold tracking-tight text-gray-900">直近7日間の純収支</h2>
+          <h2 class="text-xl font-extrabold tracking-tight text-slate-900">直近7日間の純収支</h2>
         </div>
         
-        <div id="activity-chart-container" class="h-40 flex items-end justify-between gap-1.5 relative px-2">
+        <div id="activity-chart-container" class="h-48 flex items-end justify-between gap-1.5 relative px-1">
           <!-- JSで動的に生成 -->
         </div>
 
-        <div class="mt-4 pt-4 border-t border-gray-100 flex justify-between text-xs font-bold">
-          <div id="success-days-count" class="text-emerald-600 flex items-center gap-1"><i data-lucide="trending-down" class="w-3 h-3"></i> 赤字（成功）: -日</div>
-          <div id="fail-days-count" class="text-rose-600 flex items-center gap-1"><i data-lucide="trending-up" class="w-3 h-3"></i> 黒字（超過）: -日</div>
+        <div class="mt-6 pt-5 border-t border-slate-100 flex justify-between text-sm font-extrabold">
+          <div id="success-days-count" class="text-emerald-600 flex items-center gap-1.5 bg-emerald-50 px-3 py-1.5 rounded-lg"><i data-lucide="trending-down" class="w-4 h-4"></i> 赤字: -日</div>
+          <div id="fail-days-count" class="text-rose-600 flex items-center gap-1.5 bg-rose-50 px-3 py-1.5 rounded-lg"><i data-lucide="trending-up" class="w-4 h-4"></i> 黒字: -日</div>
         </div>
       </div>
 
-      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] p-6">
-        <h2 class="text-lg font-extrabold tracking-tight text-gray-900 mb-4">AI 財務レポート</h2>
-        <button id="ai-report-btn" onclick="generateAIReport()" class="w-full py-4 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-[24px] font-extrabold text-sm flex items-center justify-center gap-2 btn-press shadow-xl shadow-blue-500/20">
-          <i data-lucide="sparkles" class="w-5 h-5 pointer-events-none"></i> ✨ 専属アナリストに分析を依頼
+      <!-- AIレポート -->
+      <div class="bg-white border border-slate-200/60 shadow-sm rounded-[32px] p-6">
+        <h2 class="text-xl font-extrabold tracking-tight text-slate-900 mb-5">AI 財務レポート</h2>
+        <button id="ai-report-btn" onclick="generateAIReport()" class="w-full py-4 bg-slate-900 text-white rounded-[20px] font-extrabold text-sm flex items-center justify-center gap-2 btn-press shadow-xl shadow-slate-900/10 active:bg-slate-800 transition-colors">
+          <i data-lucide="sparkles" class="w-5 h-5 pointer-events-none"></i> 専属アナリストに分析を依頼
         </button>
-        <div id="ai-report-container" class="hidden mt-5 pt-5 border-t border-gray-200/60">
-          <div class="flex items-center gap-2 mb-3">
-            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center border border-blue-200">
-              <i data-lucide="bot" class="w-4 h-4 text-blue-600"></i>
+        <div id="ai-report-container" class="hidden mt-6 pt-6 border-t border-slate-100">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center border border-blue-100">
+              <i data-lucide="bot" class="w-5 h-5 text-blue-600"></i>
             </div>
             <div>
-              <p class="font-extrabold text-sm text-gray-900">AI アナリスト</p>
-              <p class="text-[9px] font-bold text-gray-400">Powered by Gemini</p>
+              <p class="font-extrabold text-sm text-slate-900">AI アナリスト</p>
+              <p class="text-[10px] font-bold text-slate-400">Powered by Gemini</p>
             </div>
           </div>
-          <p id="ai-report-text" class="text-sm font-medium text-gray-700 leading-relaxed bg-white/50 p-4 rounded-2xl border border-white"></p>
+          <p id="ai-report-text" class="text-sm font-medium text-slate-700 leading-relaxed bg-slate-50 p-5 rounded-2xl border border-slate-100"></p>
         </div>
       </div>
     </div>
 
     <!-- ビュー3：明細 (Calendar) -->
-    <div id="view-calendar" class="space-y-5 hidden animate-tab">
-      <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[32px] overflow-hidden pb-4">
-        <div class="bg-gray-100/50 px-5 py-2 border-b border-white">
-          <span class="text-[11px] font-extrabold text-gray-500 tracking-widest">今月のすべての記録</span>
+    <div id="view-calendar" class="space-y-6 hidden animate-tab">
+      <div class="bg-white border border-slate-200/60 shadow-sm rounded-[32px] overflow-hidden pb-4">
+        <div class="bg-slate-50/80 px-6 py-3 border-b border-slate-100">
+          <span class="text-[11px] font-extrabold text-slate-500 tracking-widest uppercase">今月のすべての記録</span>
         </div>
-        <div id="transaction-list-full" class="divide-y divide-gray-100"></div>
+        <div id="transaction-list-full" class="divide-y divide-slate-100"></div>
       </div>
     </div>
 
     <!-- ビュー4：設定 (User) -->
     <div id="view-user" class="space-y-6 hidden animate-tab">
-      <div class="flex items-center gap-4 p-4">
-        <div class="w-16 h-16 rounded-full bg-gradient-to-br from-gray-800 to-gray-600 shadow-lg flex items-center justify-center text-white border-2 border-white">
+      <div class="flex items-center gap-5 p-4">
+        <div class="w-16 h-16 rounded-full bg-slate-900 shadow-md flex items-center justify-center text-white">
           <i data-lucide="user" class="w-8 h-8"></i>
         </div>
         <div>
-          <h2 class="text-xl font-extrabold tracking-tight">Data Analyst</h2>
-          <p class="text-sm font-bold text-gray-500">ID: USER-9921</p>
+          <h2 class="text-xl font-extrabold tracking-tight text-slate-900">Data Analyst</h2>
+          <p class="text-sm font-bold text-slate-500">ID: USER-9921</p>
         </div>
       </div>
 
-      <div class="space-y-4">
+      <div class="space-y-5">
         <div>
-          <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">AI エンジン設定</p>
-          <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden p-5">
+          <p class="px-4 text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">AI エンジン設定</p>
+          <div class="bg-white border border-slate-200/60 shadow-sm rounded-[24px] overflow-hidden p-5">
             <div class="mb-4">
-              <label class="font-extrabold text-sm text-gray-900 flex items-center gap-2 mb-2">
+              <label class="font-extrabold text-sm text-slate-900 flex items-center gap-2 mb-3">
                 <i data-lucide="key" class="w-4 h-4 text-blue-500"></i> Gemini API Key
               </label>
-              <input type="password" id="api-key-input" class="w-full bg-white rounded-xl px-4 py-3 text-sm font-medium outline-none border border-gray-200 focus:border-blue-500 transition-colors shadow-inner" placeholder="AIzaSy...">
+              <input type="password" id="api-key-input" class="w-full bg-slate-50 rounded-xl px-4 py-3.5 text-sm font-medium outline-none border border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition-all" placeholder="AIzaSy...">
             </div>
-            <button onclick="saveApiKey()" class="w-full bg-blue-50 text-blue-600 font-extrabold text-sm py-3 rounded-xl active:scale-95 transition-transform">
+            <button onclick="saveApiKey()" class="w-full bg-slate-900 text-white font-extrabold text-sm py-3.5 rounded-xl active:scale-95 transition-transform">
               端末に保存する
             </button>
           </div>
         </div>
 
         <div>
-          <p class="px-4 text-xs font-extrabold text-gray-400 uppercase tracking-widest mb-2">システム連携</p>
-          <div class="bg-white/70 backdrop-blur-xl border border-white shadow-[0_4px_24px_rgba(0,0,0,0.04)] rounded-[24px] overflow-hidden divide-y divide-gray-100">
-            <div class="p-4 flex justify-between items-center">
-              <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-500 flex items-center justify-center"><i data-lucide="heart-pulse" class="w-4 h-4"></i></div>
+          <p class="px-4 text-[11px] font-extrabold text-slate-400 uppercase tracking-widest mb-2.5">システム連携</p>
+          <div class="bg-white border border-slate-200/60 shadow-sm rounded-[24px] overflow-hidden">
+            <div class="p-5 flex justify-between items-center">
+              <div class="flex items-center gap-3.5">
+                <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center"><i data-lucide="heart-pulse" class="w-5 h-5"></i></div>
                 <div>
-                  <span class="font-bold text-sm block">Apple Health 連携</span>
-                  <span class="text-[10px] font-bold text-gray-400">ショートカットから受信</span>
+                  <span class="font-extrabold text-sm text-slate-900 block">Apple Health 連携</span>
+                  <span class="text-[10px] font-bold text-slate-400">ショートカットから受信</span>
                 </div>
               </div>
               <div class="w-12 h-7 bg-emerald-500 rounded-full relative shadow-inner cursor-pointer transition-colors">
@@ -239,137 +250,144 @@
   </main>
 
   <!-- ボトムナビゲーション -->
-  <div class="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-2xl border-t border-gray-200/50 px-6 py-2 pb-safe z-30 flex justify-between items-center shadow-[0_-20px_40px_rgba(0,0,0,0.05)]">
-    <button id="nav-wallet" onclick="switchTab('wallet')" class="flex flex-col items-center gap-1 w-16 text-gray-900 btn-press">
+  <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-slate-200/60 px-6 py-2 pb-safe z-40 flex justify-between items-center shadow-[0_-10px_40px_rgba(0,0,0,0.03)]">
+    <button id="nav-wallet" onclick="switchTab('wallet')" class="flex flex-col items-center gap-1.5 w-16 text-blue-600 btn-press">
       <i data-lucide="wallet" class="w-6 h-6 pointer-events-none" id="icon-wallet" stroke-width="2.5"></i>
-      <span class="text-[10px] font-bold pointer-events-none">口座</span>
+      <span class="text-[10px] font-extrabold pointer-events-none">口座</span>
     </button>
-    <button id="nav-activity" onclick="switchTab('activity')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="activity" class="w-6 h-6 pointer-events-none" id="icon-activity" stroke-width="2"></i>
-      <span class="text-[10px] font-bold pointer-events-none">分析</span>
+    <button id="nav-activity" onclick="switchTab('activity')" class="flex flex-col items-center gap-1.5 w-16 text-slate-400 hover:text-slate-600 transition-colors btn-press">
+      <i data-lucide="activity" class="w-6 h-6 pointer-events-none" id="icon-activity" stroke-width="2.5"></i>
+      <span class="text-[10px] font-extrabold pointer-events-none">分析</span>
     </button>
-    <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-gray-900 rounded-[22px] flex items-center justify-center text-white shadow-xl shadow-gray-900/20 border-4 border-white btn-press z-20">
-      <i data-lucide="camera" class="w-7 h-7 pointer-events-none" stroke-width="2.5"></i>
+    
+    <!-- 記帳ボタンをモダンなフローティングスタイルに -->
+    <button onclick="openModal()" class="relative -top-6 w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-[0_8px_30px_rgba(37,99,235,0.4)] transform transition-all active:scale-90 active:bg-blue-700 border-[6px] border-slate-50 btn-press z-20">
+      <i data-lucide="plus" class="w-8 h-8 pointer-events-none" stroke-width="3"></i>
     </button>
-    <button id="nav-calendar" onclick="switchTab('calendar')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="calendar" class="w-6 h-6 pointer-events-none" id="icon-calendar" stroke-width="2"></i>
-      <span class="text-[10px] font-bold pointer-events-none">明細</span>
+    
+    <button id="nav-calendar" onclick="switchTab('calendar')" class="flex flex-col items-center gap-1.5 w-16 text-slate-400 hover:text-slate-600 transition-colors btn-press">
+      <i data-lucide="calendar" class="w-6 h-6 pointer-events-none" id="icon-calendar" stroke-width="2.5"></i>
+      <span class="text-[10px] font-extrabold pointer-events-none">明細</span>
     </button>
-    <button id="nav-user" onclick="switchTab('user')" class="flex flex-col items-center gap-1 w-16 text-gray-400 btn-press">
-      <i data-lucide="user" class="w-6 h-6 pointer-events-none" id="icon-user" stroke-width="2"></i>
-      <span class="text-[10px] font-bold pointer-events-none">設定</span>
+    <button id="nav-user" onclick="switchTab('user')" class="flex flex-col items-center gap-1.5 w-16 text-slate-400 hover:text-slate-600 transition-colors btn-press">
+      <i data-lucide="user" class="w-6 h-6 pointer-events-none" id="icon-user" stroke-width="2.5"></i>
+      <span class="text-[10px] font-extrabold pointer-events-none">設定</span>
     </button>
   </div>
 
   <!-- モーダル（データ記録・修正画面） -->
   <div id="modal" class="fixed inset-0 z-50 flex items-end justify-center px-0 pb-0 hidden">
-    <div id="modal-overlay" onclick="closeModal()" class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
-    <div id="modal-content" class="bg-white w-full rounded-t-[40px] p-6 relative shadow-2xl h-[85vh] flex flex-col border-t border-white/50 transform translate-y-full transition-transform duration-400 ease-out z-10">
-      <div class="w-12 h-1.5 bg-gray-200 rounded-full mx-auto mb-6"></div>
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-2xl font-extrabold tracking-tight">取引の記帳</h3>
-        <button onclick="closeModal()" class="w-8 h-8 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 btn-press">
-          <i data-lucide="x" class="w-4 h-4 pointer-events-none" stroke-width="3"></i>
-        </button>
+    <div id="modal-overlay" onclick="closeModal()" class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm opacity-0 transition-opacity duration-300"></div>
+    <div id="modal-content" class="bg-slate-50 w-full rounded-t-[40px] relative shadow-2xl h-[90vh] flex flex-col transform translate-y-full transition-transform duration-400 ease-out z-10 overflow-hidden border-t border-white">
+      
+      <!-- モーダルヘッダー -->
+      <div class="bg-white px-6 pt-5 pb-4 border-b border-slate-100 rounded-t-[40px] z-20 shadow-sm relative">
+        <div class="w-12 h-1.5 bg-slate-200 rounded-full mx-auto mb-5"></div>
+        <div class="flex justify-between items-center">
+          <h3 class="text-xl font-extrabold tracking-tight text-slate-900">取引の記帳</h3>
+          <button onclick="closeModal()" class="w-8 h-8 bg-slate-100 rounded-full flex items-center justify-center text-slate-600 btn-press">
+            <i data-lucide="x" class="w-4 h-4 pointer-events-none" stroke-width="3"></i>
+          </button>
+        </div>
       </div>
 
       <!-- 解析・保存中のオーバーレイ -->
-      <div id="analyzing-ui" class="absolute inset-0 z-20 bg-white/90 backdrop-blur-sm rounded-t-[40px] flex flex-col items-center justify-center space-y-6 hidden">
+      <div id="analyzing-ui" class="absolute inset-0 z-30 bg-white/95 backdrop-blur-md flex flex-col items-center justify-center space-y-6 hidden">
         <div class="relative">
-           <div class="absolute inset-0 bg-blue-900/20 blur-xl rounded-2xl animate-pulse"></div>
-           <div class="w-24 h-24 bg-gray-900 rounded-[28px] flex items-center justify-center relative shadow-xl border border-gray-800">
+           <div class="absolute inset-0 bg-blue-500/20 blur-xl rounded-full animate-pulse"></div>
+           <div class="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center relative shadow-xl">
               <i data-lucide="sparkles" class="text-white w-10 h-10 animate-[spin_3s_linear_infinite]"></i>
            </div>
         </div>
         <div class="text-center">
-          <p id="analyzing-title" class="text-xl font-extrabold text-gray-900 tracking-tight">AI処理中</p>
-          <p id="analyzing-desc" class="text-sm font-bold text-gray-500 mt-2">データを処理しています...</p>
+          <p id="analyzing-title" class="text-xl font-extrabold text-slate-900 tracking-tight">AI処理中</p>
+          <p id="analyzing-desc" class="text-sm font-bold text-slate-500 mt-2">データを処理しています...</p>
         </div>
       </div>
 
       <!-- 入力・編集フォーム -->
-      <div id="input-ui" class="space-y-5 flex-1 overflow-y-auto pb-6 px-1">
+      <div id="input-ui" class="flex-1 overflow-y-auto p-6 space-y-6">
         
         <!-- STEP1: AI推測エリア -->
-        <div class="bg-blue-50/50 border border-blue-100 rounded-[20px] p-4 shadow-sm">
-          <div class="flex items-center gap-2 mb-3">
-            <i data-lucide="sparkles" class="w-4 h-4 text-blue-500"></i>
-            <span class="font-extrabold text-[11px] text-blue-700 tracking-wider">STEP 1. AIでデータを自動入力</span>
+        <div class="bg-white border border-slate-200/60 rounded-[28px] p-5 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-extrabold text-xs">1</div>
+            <span class="font-extrabold text-sm text-slate-900">AIでデータを自動入力</span>
           </div>
 
-          <div class="w-full aspect-video bg-white rounded-[16px] border-2 border-dashed border-blue-200 shadow-sm relative overflow-hidden mb-3">
-            <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center gap-6 z-10">
+          <div class="w-full aspect-video bg-slate-50 rounded-[20px] border-2 border-dashed border-slate-200 relative overflow-hidden mb-4 transition-colors hover:bg-slate-100">
+            <div id="camera-placeholder" class="absolute inset-0 flex items-center justify-center gap-8 z-10">
               <label for="image-input" class="flex flex-col items-center cursor-pointer btn-press">
-                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-1 text-blue-500 shadow-sm border border-blue-100">
-                  <i data-lucide="camera" class="w-5 h-5 pointer-events-none"></i>
+                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-2 text-slate-700 shadow-sm border border-slate-200">
+                  <i data-lucide="camera" class="w-6 h-6 pointer-events-none" stroke-width="2.5"></i>
                 </div>
-                <span class="text-[10px] font-extrabold text-blue-600">写真から</span>
+                <span class="text-[11px] font-extrabold text-slate-600">写真から</span>
                 <input type="file" id="image-input" accept="image/*" class="hidden">
               </label>
 
               <button onclick="pasteFromClipboard()" class="flex flex-col items-center cursor-pointer btn-press">
-                <div class="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center mb-1 text-blue-500 shadow-sm border border-blue-100">
-                  <i data-lucide="clipboard-paste" class="w-5 h-5 pointer-events-none"></i>
+                <div class="w-14 h-14 bg-white rounded-full flex items-center justify-center mb-2 text-blue-600 shadow-sm border border-slate-200">
+                  <i data-lucide="clipboard-paste" class="w-6 h-6 pointer-events-none" stroke-width="2.5"></i>
                 </div>
-                <span class="text-[10px] font-extrabold text-blue-600">ペースト</span>
+                <span class="text-[11px] font-extrabold text-blue-600">ペースト</span>
               </button>
             </div>
 
             <img id="preview-img" class="absolute inset-0 w-full h-full object-cover hidden pointer-events-none z-0" />
-            <button id="clear-img-btn" onclick="clearImage(event)" class="absolute top-2 right-2 w-7 h-7 bg-gray-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hidden z-20 btn-press">
-              <i data-lucide="x" class="w-3 h-3 pointer-events-none"></i>
+            <button id="clear-img-btn" onclick="clearImage(event)" class="absolute top-3 right-3 w-8 h-8 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center text-white hidden z-20 btn-press">
+              <i data-lucide="x" class="w-4 h-4 pointer-events-none"></i>
             </button>
           </div>
 
           <div class="flex gap-2">
-            <input type="text" id="ai-hint-name" placeholder="料理名で推測 (例: 卵かけご飯)" class="flex-1 min-w-0 bg-white border border-blue-100 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 outline-none shadow-inner appearance-none focus:border-blue-300">
-            <button onclick="runAIAnalysis()" class="bg-blue-600 text-white px-4 rounded-xl font-extrabold text-xs btn-press shadow-md shadow-blue-600/20 active:bg-blue-700 transition-colors">
-              AI推測
+            <input type="text" id="ai-hint-name" placeholder="料理名で推測 (例: 卵かけご飯)" class="flex-1 min-w-0 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-all">
+            <button onclick="runAIAnalysis()" class="bg-blue-600 text-white px-5 rounded-xl font-extrabold text-sm btn-press active:bg-blue-700 transition-colors shadow-sm">
+              推測
             </button>
           </div>
-          <p class="text-[9px] font-bold text-blue-400 mt-2 ml-1 leading-tight">※「ご飯とソース」など誤判定された場合、料理名を手入力して再度「AI推測」を押すと再計算されます。</p>
+          <p class="text-[10px] font-bold text-slate-400 mt-3 leading-relaxed">※誤判定された場合、料理名を修正して再度「推測」を押すと再計算されます。</p>
         </div>
 
         <!-- STEP2: 内容確認・手動修正エリア -->
-        <div class="bg-gray-100/50 border border-gray-200 rounded-[20px] p-4 shadow-sm">
-          <div class="flex items-center gap-2 mb-4">
-            <i data-lucide="edit-3" class="w-4 h-4 text-gray-500"></i>
-            <span class="font-extrabold text-[11px] text-gray-600 tracking-wider">STEP 2. 内容の確認・修正 (手入力可)</span>
+        <div class="bg-white border border-slate-200/60 rounded-[28px] p-5 shadow-sm">
+          <div class="flex items-center gap-2 mb-5">
+             <div class="w-6 h-6 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-extrabold text-xs">2</div>
+            <span class="font-extrabold text-sm text-slate-900">内容の確認・修正 (手入力可)</span>
           </div>
 
-          <div class="space-y-3">
-            <div class="flex gap-2">
-              <div class="w-16">
-                <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">絵文字</label>
-                <input type="text" id="record-icon" value="🍽️" class="w-full bg-white border border-gray-200 rounded-xl px-1 py-2.5 text-center text-lg shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+          <div class="space-y-4">
+            <div class="flex gap-3">
+              <div class="w-20">
+                <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">絵文字</label>
+                <input type="text" id="record-icon" value="🍽️" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-2 py-3.5 text-center text-xl outline-none focus:border-blue-400 transition-all">
               </div>
               <div class="flex-1">
-                <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">料理・データ名</label>
-                <input type="text" id="record-name" placeholder="名称" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">料理・データ名</label>
+                <input type="text" id="record-name" placeholder="名称" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all">
               </div>
             </div>
 
-            <div class="flex gap-2">
+            <div class="flex gap-3">
               <div class="flex-1">
-                <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">カロリー (kcal)</label>
-                <input type="number" id="record-amount" placeholder="0" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">カロリー (kcal)</label>
+                <input type="number" id="record-amount" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all">
               </div>
               <div class="flex-1">
-                <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">収支タイプ</label>
+                <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">収支タイプ</label>
                 <div class="relative">
-                  <select id="record-type" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                  <select id="record-type" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all appearance-none">
                     <option value="income">収入 (食事等)</option>
                     <option value="expense">支出 (代謝/運動)</option>
                   </select>
-                  <i data-lucide="chevron-down" class="absolute right-2.5 top-3 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                  <i data-lucide="chevron-down" class="absolute right-3 top-4 w-4 h-4 text-slate-400 pointer-events-none"></i>
                 </div>
               </div>
             </div>
 
             <div>
-              <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">カテゴリー</label>
-              <div class="relative mb-3">
-                <select id="record-category" class="w-full bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+              <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">カテゴリー</label>
+              <div class="relative mb-4">
+                <select id="record-category" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all appearance-none">
                   <option value="朝食">朝食</option>
                   <option value="昼食">昼食</option>
                   <option value="夕食">夕食</option>
@@ -378,25 +396,25 @@
                   <option value="基礎代謝">基礎代謝</option>
                   <option value="運動">運動</option>
                 </select>
-                <i data-lucide="chevron-down" class="absolute right-2.5 top-3 w-4 h-4 text-gray-400 pointer-events-none"></i>
+                <i data-lucide="chevron-down" class="absolute right-3 top-4 w-4 h-4 text-slate-400 pointer-events-none"></i>
               </div>
 
-              <div class="flex gap-2">
+              <div class="flex gap-3">
                 <div class="flex-1 min-w-0">
-                  <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">日付</label>
-                  <input type="date" id="record-date" class="w-full min-w-0 bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                  <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">日付</label>
+                  <input type="date" id="record-date" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all">
                 </div>
                 <div class="flex-1 min-w-0">
-                  <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">時間</label>
-                  <input type="time" id="record-time" class="w-full min-w-0 bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                  <label class="block text-[11px] font-extrabold text-slate-400 mb-1.5 ml-1">時間</label>
+                  <input type="time" id="record-time" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-3.5 text-sm font-bold text-slate-900 outline-none focus:border-blue-400 transition-all">
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <button onclick="saveRecordToGAS()" class="w-full py-4 bg-gray-900 text-white rounded-[24px] font-extrabold text-lg flex items-center justify-center gap-2 btn-press mt-2 shadow-xl shadow-gray-900/20 active:bg-gray-800 transition-colors">
-          <i data-lucide="save" class="w-5 h-5 pointer-events-none"></i> この内容で保存する
+        <button onclick="saveRecordToGAS()" class="w-full py-4.5 bg-slate-900 text-white rounded-[20px] font-extrabold text-base flex items-center justify-center gap-2 btn-press shadow-xl shadow-slate-900/10 active:bg-slate-800 transition-colors mb-8">
+          <i data-lucide="check" class="w-5 h-5 pointer-events-none" stroke-width="3"></i> この内容で保存する
         </button>
       </div>
     </div>
@@ -406,7 +424,6 @@
     // ==========================================
     // システム設定
     // ==========================================
-    // ★ 更新された新しいGASのURLを設定
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyIt4RopKUGAR8LSeM8vbjWB713Ma7-f_g1Mn98BvqSAJ0bDD-6DOJi8v1OaJo9wNB2JA/exec";
     
     let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
@@ -445,6 +462,41 @@
         }
       }
       return timeStr;
+    }
+
+    // 基礎代謝の自動補完
+    function applyBasalMetabolism(txs) {
+      let cleanedTxs = txs.filter(t => !(t.id === 0 && t.category === '基礎代謝'));
+      
+      let latestBasalAmount = 1500;
+      let latestBasalTime = 0;
+      cleanedTxs.forEach(t => {
+        if (t.category === '基礎代謝') {
+          const tTime = new Date(t.timestamp).getTime();
+          if (tTime > latestBasalTime) {
+            latestBasalTime = tTime;
+            latestBasalAmount = Number(t.amount);
+          }
+        }
+      });
+
+      const todayStr = new Date().toDateString();
+      const hasTodayBasal = cleanedTxs.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
+      
+      if (!hasTodayBasal) {
+        cleanedTxs.push({ 
+          id: 0, 
+          type: 'expense', 
+          category: '基礎代謝', 
+          name: '基礎代謝 (自動)', 
+          amount: latestBasalAmount, 
+          time: '00:00', 
+          icon: '🫀', 
+          timestamp: new Date().toISOString() 
+        });
+      }
+      
+      return cleanedTxs;
     }
 
     document.addEventListener("DOMContentLoaded", () => {
@@ -542,7 +594,7 @@
       document.getElementById('camera-placeholder').classList.remove('hidden');
     }
 
-    // --- AI解析 (推測のみ) ---
+    // --- AI解析 ---
     async function runAIAnalysis() {
       if (!geminiApiKey) {
         showToast("Gemini APIキーを設定してください。", true);
@@ -564,8 +616,8 @@
       const analyzingTitle = document.getElementById('analyzing-title');
       const analyzingDesc = document.getElementById('analyzing-desc');
       
-      analyzingTitle.innerText = "Gemini AI 解析中";
-      analyzingDesc.innerText = "データを推測しています...";
+      analyzingTitle.innerText = "AIが解析中...";
+      analyzingDesc.innerText = "データを推測しています";
       analyzingUI.classList.remove('hidden');
       
       try {
@@ -622,7 +674,7 @@
           document.getElementById('record-category').value = '基礎代謝';
         }
         
-        showToast("AIの推測が完了しました。内容を確認してください。");
+        showToast("推測完了！内容を確認してください。");
       } catch (error) {
         console.error("エラー:", error);
         showToast("解析に失敗しました", true);
@@ -631,7 +683,7 @@
       }
     }
 
-    // --- 削除機能（フロントエンド） ---
+    // --- 削除機能 ---
     async function deleteRecord(event, id, timestampStr, name, amount) {
       event.stopPropagation(); 
       if(navigator.vibrate) navigator.vibrate(10);
@@ -640,6 +692,8 @@
         if (id && id !== "undefined") return String(t.id) !== String(id);
         return t.timestamp !== timestampStr;
       });
+      
+      transactions = applyBasalMetabolism(transactions);
       updateUI();
       showToast("記録を削除しました");
 
@@ -655,20 +709,20 @@
       }
     }
 
-    // --- クラウドへの保存 (GAS) ---
+    // --- クラウドへの保存 ---
     async function saveRecordToGAS() {
       const name = document.getElementById('record-name').value.trim();
       const amount = Number(document.getElementById('record-amount').value);
       if (!name || isNaN(amount) || amount <= 0) {
-        showToast("正しい料理名とカロリー(1以上)を入力してください", true);
+        showToast("正しい料理名とカロリーを入力してください", true);
         return;
       }
 
       if(navigator.vibrate) navigator.vibrate(10);
       
       const analyzingUI = document.getElementById('analyzing-ui');
-      document.getElementById('analyzing-title').innerText = "クラウドへ保存中";
-      document.getElementById('analyzing-desc').innerText = "データをスプレッドシートに記録しています...";
+      document.getElementById('analyzing-title').innerText = "保存中...";
+      document.getElementById('analyzing-desc').innerText = "クラウドへ記録しています";
       analyzingUI.classList.remove('hidden');
 
       const selectedCategory = document.getElementById('record-category').value;
@@ -713,6 +767,7 @@
         }
         
         transactions.push(newRecord);
+        transactions = applyBasalMetabolism(transactions);
         updateUI();
         
         showToast(`記録を保存しました！`);
@@ -726,9 +781,8 @@
     }
 
     // ==========================================
-    // UIとデータ集計ロジック
+    // UI更新とデータ取得
     // ==========================================
-
     async function fetchTransactions(showLoadingToast = false) {
       if(showLoadingToast) showToast("最新のデータを取得しています...");
       if(navigator.vibrate) navigator.vibrate(10);
@@ -765,13 +819,7 @@
           }
         });
 
-        transactions = uniqueTransactions;
-
-        const todayStr = new Date().toDateString();
-        const hasTodayBasal = transactions.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
-        if (!hasTodayBasal) {
-          transactions.push({ id: 0, type: 'expense', category: '基礎代謝', name: '仮・基礎代謝', amount: 1500, time: '00:00', icon: '🫀', timestamp: new Date().toISOString() });
-        }
+        transactions = applyBasalMetabolism(uniqueTransactions);
         
         updateUI();
         if(showLoadingToast) showToast("同期が完了しました！");
@@ -779,7 +827,6 @@
         console.error("データの取得に失敗:", error);
         showToast("データの取得に失敗しました", true);
       } finally {
-        // ★修正: lucide.createIcons() によってSVGが再生成され参照が切れてしまうため、再取得して回転アニメーションを確実に外す
         const currentIcon = refreshBtn ? (refreshBtn.querySelector('svg') || refreshBtn.querySelector('i')) : null;
         if(currentIcon) currentIcon.classList.remove('animate-[spin_1s_linear_infinite]');
       }
@@ -792,8 +839,14 @@
       ['wallet', 'activity', 'calendar', 'user'].forEach(id => {
         document.getElementById(`view-${id}`).classList.add('hidden');
         const btn = document.getElementById(`nav-${id}`);
-        btn.classList.remove('text-gray-900');
-        btn.classList.add('text-gray-400');
+        // 選択されたタブのスタイル（青にする）
+        if (id === tabId) {
+          btn.classList.remove('text-slate-400');
+          btn.classList.add('text-blue-600');
+        } else {
+          btn.classList.remove('text-blue-600');
+          btn.classList.add('text-slate-400');
+        }
       });
       const targetView = document.getElementById(`view-${tabId}`);
       targetView.classList.remove('hidden');
@@ -801,10 +854,30 @@
       void targetView.offsetWidth; 
       targetView.classList.add('animate-tab');
       
-      const activeBtn = document.getElementById(`nav-${tabId}`);
-      activeBtn.classList.remove('text-gray-400');
-      activeBtn.classList.add('text-gray-900');
       document.getElementById('header-title').innerText = tabTitles[tabId];
+    }
+
+    // モダンなアドバイスカラーを返す
+    function getAdvice(monthlyBalance, isSurplus) {
+      if (isSurplus) {
+        return { 
+          name: "月次アラート", role: "カロリー超過", 
+          text: "今月は累計で黒字化（カロリー過多）しています。このまま月末を迎えると、脂肪として確定申告されてしまいます。早急に運動でマイナスを作ってください。", 
+          bg: "bg-rose-50 border-rose-100", textCol: "text-rose-900", iconBg: "bg-rose-100 border-rose-200", icon: "🚨" 
+        };
+      } else if (monthlyBalance > -3600) {
+        return { 
+          name: "分析エンジン", role: "赤字（順調）", 
+          text: "順調な赤字経営です。徐々に体内エネルギーの枯渇（脂肪燃焼）が進んでいます。この調子で今月の決算まで赤字幅を広げていきましょう。", 
+          bg: "bg-blue-50 border-blue-100", textCol: "text-blue-900", iconBg: "bg-blue-100 border-blue-200", icon: "📊" 
+        };
+      } else {
+        return { 
+          name: "分析エンジン", role: "大赤字（大成功）", 
+          text: "驚異的な大赤字です！すでに脂肪0.5kg相当以上のエネルギーを内部から切り崩しています。完璧な運用実績として評価されます。", 
+          bg: "bg-emerald-50 border-emerald-100", textCol: "text-emerald-900", iconBg: "bg-emerald-100 border-emerald-200", icon: "📉" 
+        };
+      }
     }
 
     function updateUI() {
@@ -841,10 +914,10 @@
       const balanceCard = document.getElementById('balance-card');
       const alertPing = document.getElementById('alert-ping');
       if (isSurplus) {
-        balanceCard.className = "p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-rose-500 to-red-600 shadow-rose-500/20";
+        balanceCard.className = "p-7 rounded-[32px] text-white shadow-[0_20px_40px_-15px_rgba(244,63,94,0.4)] transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-rose-500 to-pink-500";
         alertPing.classList.remove('hidden');
       } else {
-        balanceCard.className = "p-6 rounded-[32px] text-white shadow-2xl transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-600 shadow-emerald-500/20";
+        balanceCard.className = "p-7 rounded-[32px] text-white shadow-[0_20px_40px_-15px_rgba(16,185,129,0.4)] transition-all duration-700 relative overflow-hidden bg-gradient-to-br from-emerald-500 to-teal-500";
         alertPing.classList.add('hidden');
       }
 
@@ -854,15 +927,18 @@
         progressPercent = Math.min((monthlyBalance / fatBurnGoal) * 100, 100);
       }
       document.getElementById('fat-burn-bar').style.width = `${progressPercent}%`;
-      document.getElementById('fat-burn-progress-text').innerText = `${monthlyBalance} / ${fatBurnGoal} kcal (脂肪換算: ${(monthlyBalance/7200).toFixed(2)} kg)`;
+      document.getElementById('fat-burn-progress-text').innerText = `${monthlyBalance} / ${fatBurnGoal} kcal`;
 
       const advice = getAdvice(monthlyBalance, isSurplus);
       const adviceCard = document.getElementById('advice-card');
-      adviceCard.className = `rounded-[28px] p-5 bg-gradient-to-r ${advice.gradient} text-white shadow-lg flex gap-4 items-start transform transition-all duration-500`;
+      adviceCard.className = `rounded-[28px] p-5 shadow-sm flex gap-4 items-start transition-all duration-500 ${advice.bg}`;
       document.getElementById('advice-icon').innerText = advice.icon;
+      document.getElementById('advice-icon-bg').className = `w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 text-3xl border shadow-sm ${advice.iconBg}`;
       document.getElementById('advice-name').innerText = advice.name;
+      document.getElementById('advice-name').className = `font-extrabold text-base tracking-tight ${advice.textCol}`;
       document.getElementById('advice-role').innerText = advice.role;
       document.getElementById('advice-text').innerText = advice.text;
+      document.getElementById('advice-text').className = `text-sm font-medium leading-relaxed opacity-90 ${advice.textCol}`;
 
       const sortedTodayTxs = [...todayTxs].sort((a, b) => {
         const tA = a.time || "";
@@ -886,7 +962,7 @@
 
     async function generateAIReport() {
       if (!geminiApiKey) {
-        showToast("設定タブからGemini APIキーを設定してください。", true);
+        showToast("設定からGemini APIキーを設定してください。", true);
         switchTab('user');
         return;
       }
@@ -986,55 +1062,56 @@
         };
       });
 
-      document.getElementById('success-days-count').innerHTML = `<i data-lucide="trending-down" class="w-3 h-3"></i> 赤字（成功）: ${successCount}日`;
-      document.getElementById('fail-days-count').innerHTML = `<i data-lucide="trending-up" class="w-3 h-3"></i> 黒字（超過）: ${failCount}日`;
+      document.getElementById('success-days-count').innerHTML = `<i data-lucide="trending-down" class="w-4 h-4"></i> 赤字: ${successCount}日`;
+      document.getElementById('fail-days-count').innerHTML = `<i data-lucide="trending-up" class="w-4 h-4"></i> 黒字: ${failCount}日`;
 
       let maxAbs = Math.max(...balances.map(b => Math.abs(b.balance)));
       if (maxAbs < 1000) maxAbs = 1000; 
 
-      let html = '<div class="absolute left-0 right-0 border-t border-dashed border-gray-300 z-0 pointer-events-none" style="bottom: 5.75rem;"></div>';
+      // グラフのゼロラインをモダンな色に
+      let html = '<div class="absolute left-0 right-0 border-t border-dashed border-slate-200 z-0 pointer-events-none" style="bottom: 6.5rem;"></div>';
 
       balances.forEach(b => {
         const isSurplus = b.balance > 0;
-        let heightPx = Math.abs(b.balance) / maxAbs * 45; // 最大45px
+        let heightPx = Math.abs(b.balance) / maxAbs * 55; // バーの長さを少し伸ばす
         if (heightPx < 4) heightPx = 4; 
 
         const dayName = dayNames[b.date.getDay()];
         const displayDate = `${b.date.getMonth() + 1}月${b.date.getDate()}日`;
-        const displayBalance = `${isSurplus ? '+' : ''}${b.balance} kcal`;
+        const displayBalance = `${isSurplus ? '+' : ''}${b.balance}`;
         
         const labelHtml = b.isToday 
-          ? `<span class="text-[10px] font-extrabold text-gray-900 bg-gray-200 px-2 py-0.5 rounded-full z-10 pointer-events-none">${dayName}</span>`
-          : `<span class="text-[10px] font-bold text-gray-400 z-10 pointer-events-none">${dayName}</span>`;
+          ? `<span class="text-[10px] font-extrabold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-lg z-10 pointer-events-none shadow-sm border border-blue-100">${dayName}</span>`
+          : `<span class="text-[10px] font-bold text-slate-400 z-10 pointer-events-none">${dayName}</span>`;
 
         let barHtml = '';
         if (isSurplus) {
           barHtml = `
-            <div class="w-full bg-rose-400 rounded-t-md bar-grow ${b.isToday ? 'shadow-lg shadow-rose-500/30' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
-              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 z-20 pointer-events-none">
-                <span class="text-[8px] font-extrabold text-rose-500 bg-white/90 px-1 py-0.5 rounded-md leading-none shadow-sm border border-rose-100 whitespace-nowrap block">${displayBalance}</span>
+            <div class="w-full bg-rose-400 rounded-t-lg bar-grow ${b.isToday ? 'shadow-md shadow-rose-400/40' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
+              <div class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1.5 z-20 pointer-events-none">
+                <span class="text-[9px] font-extrabold text-rose-600 bg-white px-1.5 py-0.5 rounded-md shadow-sm border border-rose-100 whitespace-nowrap block">${displayBalance}</span>
               </div>
             </div>`;
         } else {
           barHtml = `
-            <div class="w-full bg-emerald-400 rounded-b-md bar-grow ${b.isToday ? 'shadow-lg shadow-emerald-500/30' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
-              <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 z-20 pointer-events-none">
-                <span class="text-[8px] font-extrabold text-emerald-500 bg-white/90 px-1 py-0.5 rounded-md leading-none shadow-sm border border-emerald-100 whitespace-nowrap block">${displayBalance}</span>
+            <div class="w-full bg-emerald-400 rounded-b-lg bar-grow ${b.isToday ? 'shadow-md shadow-emerald-400/40' : ''} z-10 pointer-events-none relative" style="height: ${heightPx}px;">
+              <div class="absolute top-full left-1/2 transform -translate-x-1/2 mt-1.5 z-20 pointer-events-none">
+                <span class="text-[9px] font-extrabold text-emerald-600 bg-white px-1.5 py-0.5 rounded-md shadow-sm border border-emerald-100 whitespace-nowrap block">${displayBalance}</span>
               </div>
             </div>`;
         }
 
         html += `
-          <button type="button" data-msg="${displayDate}の純収支: ${displayBalance}" data-surplus="${isSurplus}" class="w-full h-full flex flex-col justify-end items-center z-20 cursor-pointer active:opacity-50 transition-opacity outline-none appearance-none bg-black/0 p-0 m-0 border-none relative">
-            <div class="flex-1 flex flex-col justify-end items-center w-full pb-[1px] pointer-events-none">
+          <button type="button" data-msg="${displayDate}の純収支: ${displayBalance}kcal" data-surplus="${isSurplus}" class="w-full h-full flex flex-col justify-end items-center z-20 cursor-pointer active:bg-slate-50 rounded-xl transition-colors outline-none appearance-none bg-black/0 p-0 m-0 border-none relative">
+            <div class="flex-1 flex flex-col justify-end items-center w-full pb-[1px] pointer-events-none px-1">
                ${isSurplus ? barHtml : ''}
             </div>
             
-            <div class="flex-1 flex flex-col justify-start items-center w-full pt-[1px] pointer-events-none">
+            <div class="flex-1 flex flex-col justify-start items-center w-full pt-[1px] pointer-events-none px-1">
                ${!isSurplus ? barHtml : ''}
             </div>
             
-            <div class="h-6 flex items-end justify-center w-full pointer-events-none">
+            <div class="h-8 flex items-end justify-center w-full pointer-events-none pb-1">
               ${labelHtml}
             </div>
           </button>
@@ -1053,53 +1130,43 @@
     }
 
     function generateTxHtml(txArray, showDate = false) {
-      if(txArray.length === 0) return `<div class="p-4 text-center text-sm font-bold text-gray-400">取引データがありません</div>`;
+      if(txArray.length === 0) return `<div class="p-8 text-center text-sm font-bold text-slate-400">取引データがありません</div>`;
       
       return txArray.map(tx => {
         let dateLabel = "";
         if (showDate && tx.timestamp) {
           const d = new Date(tx.timestamp);
-          dateLabel = `<span class="text-[10px] font-bold text-gray-400 mr-2">${d.getMonth()+1}/${d.getDate()}</span>`;
+          dateLabel = `<span class="text-[10px] font-bold text-slate-400 mr-2 bg-slate-50 px-1.5 py-0.5 rounded-md border border-slate-100">${d.getMonth()+1}/${d.getDate()}</span>`;
         }
         
         const deleteBtnHtml = tx.id === 0 ? '<div class="w-8"></div>' : `
-          <button onclick="deleteRecord(event, '${tx.id}', '${tx.timestamp}', '${tx.name.replace(/'/g, "\\'")}', ${tx.amount})" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
+          <button onclick="deleteRecord(event, '${tx.id}', '${tx.timestamp}', '${tx.name.replace(/'/g, "\\'")}', ${tx.amount})" class="w-8 h-8 flex items-center justify-center text-slate-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
             <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
           </button>
         `;
 
         return `
-        <div class="p-4 flex items-center gap-3 active:bg-gray-100 transition-colors cursor-pointer">
-          <div class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-inner border ${tx.type === 'income' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}">
+        <div class="p-4 flex items-center gap-3.5 hover:bg-slate-50 active:bg-slate-100 transition-colors cursor-pointer">
+          <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0 shadow-sm border ${tx.type === 'income' ? 'bg-orange-50 border-orange-100 text-orange-600' : 'bg-blue-50 border-blue-100 text-blue-600'}">
             ${tx.icon}
           </div>
           <div class="flex-1 min-w-0">
-            <h3 class="text-[15px] font-bold text-gray-900 truncate tracking-tight">${tx.name}</h3>
-            <div class="flex items-center gap-2 mt-1">
+            <h3 class="text-sm font-extrabold text-slate-900 truncate tracking-tight mb-1">${tx.name}</h3>
+            <div class="flex items-center gap-1.5">
               ${dateLabel}
-              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${tx.type === 'income' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}">${tx.category}</span>
-              <span class="text-xs text-gray-400 font-bold whitespace-nowrap">${formatTime(tx.time)}</span>
+              <span class="text-[9px] font-bold px-2 py-0.5 rounded-md whitespace-nowrap ${tx.type === 'income' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 'bg-blue-50 text-blue-600 border border-blue-100'}">${tx.category}</span>
+              <span class="text-[10px] text-slate-400 font-bold whitespace-nowrap">${formatTime(tx.time)}</span>
             </div>
           </div>
           <div class="text-right shrink-0">
             <div class="text-lg font-extrabold tracking-tighter tabular-nums ${tx.type === 'income' ? 'text-orange-500' : 'text-blue-500'}">
               ${tx.type === 'income' ? '+' : '-'}${tx.amount}
             </div>
-            <span class="text-[9px] font-bold text-gray-400 uppercase tracking-wider">kcal</span>
+            <span class="text-[9px] font-extrabold text-slate-400 uppercase tracking-wider block -mt-1">kcal</span>
           </div>
           ${deleteBtnHtml}
         </div>
       `}).join('');
-    }
-
-    function getAdvice(monthlyBalance, isSurplus) {
-      if (isSurplus) {
-        return { name: "月次アラート", role: "黒字（カロリー超過）", text: "今月は累計で黒字化（カロリー過多）しています。このまま月末を迎えると、脂肪として確定申告されてしまいます。早急に運動でマイナスを作ってください。", gradient: "from-rose-500 to-red-500", icon: "🚨" };
-      } else if (monthlyBalance > -3600) {
-        return { name: "分析エンジン", role: "赤字（順調）", text: "順調な赤字経営です。徐々に体内エネルギーの枯渇（脂肪燃焼）が進んでいます。この調子で今月の決算まで赤字幅を広げていきましょう。", gradient: "from-blue-500 to-indigo-500", icon: "📊" };
-      } else {
-        return { name: "分析エンジン", role: "大赤字（大成功）", text: "驚異的な大赤字です！すでに脂肪0.5kg相当以上のエネルギーを内部から切り崩しています。完璧な運用実績として評価されます。", gradient: "from-emerald-400 to-teal-500", icon: "📉" };
-      }
     }
 
     const modal = document.getElementById('modal');
@@ -1112,8 +1179,6 @@
       clearImage();
       
       const now = new Date();
-      
-      // STEP2の初期化
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');

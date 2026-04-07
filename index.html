@@ -43,7 +43,9 @@
 
   <div id="toast" class="fixed top-safe mt-4 left-4 right-4 z-[100] transform -translate-y-[150%] opacity-0 transition-all duration-300 pointer-events-none flex justify-center">
     <div class="bg-gray-900/90 backdrop-blur-md text-white px-6 py-3 rounded-2xl shadow-xl flex items-center gap-3">
-      <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
+      <div id="toast-icon-container">
+        <i data-lucide="info" class="w-5 h-5 text-blue-400"></i>
+      </div>
       <span id="toast-message" class="text-sm font-bold tracking-wide"></span>
     </div>
   </div>
@@ -57,8 +59,7 @@
       </p>
       <div class="flex items-center gap-3">
         <h1 id="header-title" class="text-3xl font-extrabold tracking-tight transition-all">体内エネルギー収支</h1>
-        <!-- ★修正: アイコンの pointer-events-none と z-20 を追加してタップ不良を解消 -->
-        <button onclick="fetchTransactions(true)" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20 relative z-20">
+        <button id="refresh-btn" onclick="fetchTransactions(true)" class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 shadow-inner btn-press active:bg-white/20 relative z-20">
           <i data-lucide="refresh-cw" class="w-4 h-4 text-white pointer-events-none"></i>
         </button>
       </div>
@@ -381,13 +382,13 @@
               </div>
 
               <div class="flex gap-2">
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                   <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">日付</label>
-                  <input type="date" id="record-date" class="w-full bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                  <input type="date" id="record-date" class="w-full min-w-0 bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
                 </div>
-                <div class="flex-1">
+                <div class="flex-1 min-w-0">
                   <label class="block text-[10px] font-extrabold text-gray-400 mb-1 pl-1">時間</label>
-                  <input type="time" id="record-time" class="w-full bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
+                  <input type="time" id="record-time" class="w-full min-w-0 bg-white border border-gray-200 rounded-xl px-2 py-2.5 text-sm font-bold text-gray-900 shadow-inner appearance-none outline-none focus:border-gray-400 transition-colors">
                 </div>
               </div>
             </div>
@@ -415,18 +416,17 @@
     function showToast(message, isError = false) {
       const toast = document.getElementById('toast');
       const msgEl = document.getElementById('toast-message');
-      const icon = toast.querySelector('i');
+      const iconContainer = document.getElementById('toast-icon-container');
+      
       msgEl.innerText = message;
+      
       if (isError) {
-        icon.setAttribute('data-lucide', 'alert-circle');
-        icon.classList.replace('text-blue-400', 'text-rose-400');
-        icon.classList.replace('text-emerald-400', 'text-rose-400');
+        iconContainer.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5 text-rose-400"></i>';
       } else {
-        icon.setAttribute('data-lucide', 'check-circle-2');
-        icon.classList.replace('text-rose-400', 'text-emerald-400');
-        icon.classList.replace('text-blue-400', 'text-emerald-400');
+        iconContainer.innerHTML = '<i data-lucide="check-circle-2" class="w-5 h-5 text-emerald-400"></i>';
       }
       lucide.createIcons();
+      
       toast.classList.remove('-translate-y-[150%]', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
       setTimeout(() => {
@@ -631,11 +631,14 @@
     }
 
     // --- 削除機能（フロントエンド） ---
-    async function deleteRecord(event, id) {
+    async function deleteRecord(event, id, timestampStr) {
       event.stopPropagation(); 
       if(navigator.vibrate) navigator.vibrate(10);
       
-      transactions = transactions.filter(t => String(t.id) !== String(id));
+      transactions = transactions.filter(t => {
+        if (id && id !== "undefined") return String(t.id) !== String(id);
+        return t.timestamp !== timestampStr;
+      });
       updateUI();
       showToast("記録を削除しました");
 
@@ -644,7 +647,7 @@
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'delete', payload: { id: id } })
+          body: JSON.stringify({ action: 'delete', payload: { id: id, timestamp: timestampStr } })
         });
       } catch (error) {
         console.error("削除通信エラー:", error);
@@ -729,11 +732,11 @@
       if(showLoadingToast) showToast("最新のデータを取得しています...");
       if(navigator.vibrate) navigator.vibrate(10);
       
-      const icon = document.querySelector('i[data-lucide="refresh-cw"]');
+      const refreshBtn = document.getElementById('refresh-btn');
+      const icon = refreshBtn ? (refreshBtn.querySelector('svg') || refreshBtn.querySelector('i')) : null;
       if(icon) icon.classList.add('animate-[spin_1s_linear_infinite]');
       
       try {
-        // ★修正: キャッシュ回避のためのパラメータ付与を強化
         const fetchUrl = GAS_WEB_APP_URL + (GAS_WEB_APP_URL.includes('?') ? '&' : '?') + "t=" + new Date().getTime();
         const response = await fetch(fetchUrl, { cache: 'no-store' });
         const data = await response.json();
@@ -913,7 +916,6 @@
         本日の支出(代謝+運動): ${todayExp} kcal
         `;
 
-        // ★修正: プレビューモデルではなく、安定している通常のFlashモデルを使用するように変更
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`;
         const payload = {
           contents: [{ parts: [{ text: prompt }] }]
@@ -1002,7 +1004,6 @@
           ? `<span class="text-[10px] font-extrabold text-gray-900 bg-gray-200 px-2 py-0.5 rounded-full z-10 pointer-events-none">${dayName}</span>`
           : `<span class="text-[10px] font-bold text-gray-400 z-10 pointer-events-none">${dayName}</span>`;
 
-        // ★修正: absolute配置と-translate-x-1/2を使って、文字が長くても隣にはみ出さないように配置
         let barHtml = '';
         if (isSurplus) {
           barHtml = `
@@ -1059,7 +1060,7 @@
         }
         
         const deleteBtnHtml = tx.id === 0 ? '<div class="w-8"></div>' : `
-          <button onclick="deleteRecord(event, '${tx.id}')" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
+          <button onclick="deleteRecord(event, '${tx.id}', '${tx.timestamp}')" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
             <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
           </button>
         `;
@@ -1109,6 +1110,7 @@
       
       const now = new Date();
       
+      // STEP2の初期化
       const yyyy = now.getFullYear();
       const mm = String(now.getMonth() + 1).padStart(2, '0');
       const dd = String(now.getDate()).padStart(2, '0');

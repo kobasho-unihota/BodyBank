@@ -406,7 +406,8 @@
     // ==========================================
     // システム設定
     // ==========================================
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzKcBABJsv4YyAw1QbWnM6AXrr3w6VTmaf6qMJQxn2KDsW06znPcAYJCqDJAXHaIDsIgA/exec";
+    // ★ 更新された新しいGASのURLを設定
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyIt4RopKUGAR8LSeM8vbjWB713Ma7-f_g1Mn98BvqSAJ0bDD-6DOJi8v1OaJo9wNB2JA/exec";
     
     let geminiApiKey = localStorage.getItem('gemini_api_key') || '';
     let selectedImageBase64 = null;
@@ -631,7 +632,7 @@
     }
 
     // --- 削除機能（フロントエンド） ---
-    async function deleteRecord(event, id, timestampStr) {
+    async function deleteRecord(event, id, timestampStr, name, amount) {
       event.stopPropagation(); 
       if(navigator.vibrate) navigator.vibrate(10);
       
@@ -647,7 +648,7 @@
           method: 'POST',
           mode: 'no-cors',
           headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: 'delete', payload: { id: id, timestamp: timestampStr } })
+          body: JSON.stringify({ action: 'delete', payload: { id: id, timestamp: timestampStr, name: name, amount: amount } })
         });
       } catch (error) {
         console.error("削除通信エラー:", error);
@@ -778,7 +779,9 @@
         console.error("データの取得に失敗:", error);
         showToast("データの取得に失敗しました", true);
       } finally {
-        if(icon) icon.classList.remove('animate-[spin_1s_linear_infinite]');
+        // ★修正: lucide.createIcons() によってSVGが再生成され参照が切れてしまうため、再取得して回転アニメーションを確実に外す
+        const currentIcon = refreshBtn ? (refreshBtn.querySelector('svg') || refreshBtn.querySelector('i')) : null;
+        if(currentIcon) currentIcon.classList.remove('animate-[spin_1s_linear_infinite]');
       }
     }
 
@@ -1060,7 +1063,7 @@
         }
         
         const deleteBtnHtml = tx.id === 0 ? '<div class="w-8"></div>' : `
-          <button onclick="deleteRecord(event, '${tx.id}', '${tx.timestamp}')" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
+          <button onclick="deleteRecord(event, '${tx.id}', '${tx.timestamp}', '${tx.name.replace(/'/g, "\\'")}', ${tx.amount})" class="w-8 h-8 flex items-center justify-center text-gray-300 hover:text-rose-500 hover:bg-rose-50 active:scale-90 rounded-full transition-all shrink-0 btn-press">
             <i data-lucide="trash-2" class="w-4 h-4 pointer-events-none"></i>
           </button>
         `;

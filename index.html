@@ -194,7 +194,7 @@
     <div id="view-calendar" class="space-y-6 hidden animate-tab">
       <div class="bg-white border border-slate-200/60 shadow-sm rounded-[32px] overflow-hidden pb-4">
         <div class="bg-slate-50/80 px-6 py-3 border-b border-slate-100">
-          <span class="text-[11px] font-extrabold text-slate-500 tracking-widest uppercase">今月のすべての記録</span>
+          <span class="text-[11px] font-extrabold text-slate-500 tracking-widest uppercase">すべての記録</span>
         </div>
         <div id="transaction-list-full" class="divide-y divide-slate-100"></div>
       </div>
@@ -484,6 +484,10 @@
       const hasTodayBasal = cleanedTxs.some(t => t.category === '基礎代謝' && new Date(t.timestamp).toDateString() === todayStr);
       
       if (!hasTodayBasal) {
+        // ★修正: 自動補完される基礎代謝は「今日の0時0分」として最下部にソートされるように調整
+        const todayZero = new Date();
+        todayZero.setHours(0, 0, 0, 0);
+
         cleanedTxs.push({ 
           id: 0, 
           type: 'expense', 
@@ -492,7 +496,7 @@
           amount: latestBasalAmount, 
           time: '00:00', 
           icon: '🫀', 
-          timestamp: new Date().toISOString() 
+          timestamp: todayZero.toISOString() 
         });
       }
       
@@ -940,20 +944,26 @@
       document.getElementById('advice-text').innerText = advice.text;
       document.getElementById('advice-text').className = `text-sm font-medium leading-relaxed opacity-90 ${advice.textCol}`;
 
-      const sortedTodayTxs = [...todayTxs].sort((a, b) => {
-        const tA = a.time || "";
-        const tB = b.time || "";
-        return tB.localeCompare(tA);
-      });
-      
-      const sortedMonthlyTxs = [...monthlyTxs].sort((a, b) => {
-        const dateA = a.timestamp ? new Date(a.timestamp) : new Date();
-        const dateB = b.timestamp ? new Date(b.timestamp) : new Date();
-        return dateB - dateA;
-      });
+      // ★修正：iOS Safariの「日付パースバグ」を回避する安全なソート
+      const sortByDateTimeDesc = (a, b) => {
+        const getSafeTime = (ts) => {
+          if (!ts) return 0;
+          let d = new Date(ts).getTime();
+          if (isNaN(d) && typeof ts === 'string') {
+            // ハイフン区切りをスラッシュに置換してパース
+            d = new Date(ts.replace(/-/g, '/').replace('T', ' ').split('.')[0]).getTime();
+          }
+          return isNaN(d) ? 0 : d;
+        };
+        return getSafeTime(b.timestamp) - getSafeTime(a.timestamp);
+      };
+
+      const sortedTodayTxs = [...todayTxs].sort(sortByDateTimeDesc);
+      // ★修正：明細タブには「今月」だけでなく「全件」をソートして表示
+      const sortedAllTxs = [...transactions].sort(sortByDateTimeDesc);
 
       document.getElementById('transaction-list-today').innerHTML = generateTxHtml(sortedTodayTxs);
-      document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedMonthlyTxs, true);
+      document.getElementById('transaction-list-full').innerHTML = generateTxHtml(sortedAllTxs, true);
       
       updateActivityChart();
       

@@ -2,8 +2,9 @@
 
 体内エネルギー収支と活動を記録・可視化するWebアプリです。
 
-## 統合先
+## 移転先
 
-個人開発ツールはポートフォリオへ集約しました。既存の公開URLは互換性のため残しています。
+開発元と公開先を `myportfolio` に統合しました。このリポジトリは旧URLの転送用です。
 
-https://kobasho-unihota.github.io/myportfolio/#apps
+- アプリ: https://kobasho-unihota.github.io/myportfolio/apps/BodyBank/
+- ソース: https://github.com/kobasho-unihota/myportfolio/tree/main/apps/BodyBank
